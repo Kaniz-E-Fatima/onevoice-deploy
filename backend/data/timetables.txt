@@ -1,0 +1,59 @@
+STANLEY COLLEGE - EXAM TIMETABLES
+All exams portal: www.stanleyexams.in
+
+=== BE TIMETABLES ===
+BE III Sem (R23) Main January 2025 - Time 1:00PM-4:00PM:
+31.12.24: ECE-Environmental Science, EEE-Environmental Science, IT-Environmental Science, AIML-Environmental Science, CME-Indian Constitution, AI&DS-Indian Constitution
+02.01.25: CSE-Computer Organization & Microprocessor, ECE-Digital System Design, EEE-Analog Electronics, IT-Database Management Systems, AIML-Database Management Systems, CME-Concepts in Computer Organization & Microprocessor, AI&DS-Concepts in Computer Organization & Microprocessor
+04.01.25: All Branches - OOPS Using Java
+06.01.25: CSE-Mathematics-III, ECE-Probability Theory & Stochastic Process, EEE-Engineering Mechanics, IT-Discrete Mathematics & Graph Theory, AIML-Discrete Mathematics & Graph Theory, CME-Mathematics-III, AI&DS-Mathematics-III
+08.01.25: CSE-Integrated Electronic Circuits, ECE-Signals & Systems, EEE-Electromagnetic Fields, IT-Digital Electronics, AIML-Data Visualization, CME-Digital Electronics, AI&DS-Digital Electronics
+10.01.25: CSE-Logic and Switching Theory, ECE-Electronic Devices, EEE-Electrical Circuit Analysis, IT-Computer Architecture & Organization, AIML-Probability & Statistics for Machine Learning, CME-Discrete Mathematics, AI&DS-Discrete Mathematics
+
+BE I Sem (B24) Main January 2025 - Time 1:00PM-4:00PM (18 Jan - 27 Jan 2025)
+Subjects: Mathematics-I, Programming for Problem Solving, Applied Chemistry/Engineering Physics, English, Universal Human Values, Basics of Electrical Engineering
+
+BE V Sem (B22) Main January 2025 - Time 1:00PM-4:00PM (25 Jan - 03 Feb 2025)
+Branches: CSE, CME, AI&DS, ECE, EEE, IT
+
+BE VII Sem (B22) Regular December 2025 - Time 10:00AM-1:00PM (24 Dec 2025 - 02 Jan 2026)
+Branches: CSE, CME, AI&DS, ECE, EEE, IT
+
+BE VIII Sem (R21) Main April 2025 - Date: 22 April 2025, Time 1:00PM-4:00PM
+
+BE VI Sem (R21) Main July 2024 - Time 1:00PM-4:00PM:
+10.07.24: CSE-Managerial Economics & Financial Accounting, ECE-Data Communication & Computer Networks, EEE-Finance & Accounting, IT-Embedded Systems, CME-Managerial Economics & Financial Accounting, AI&DS-Managerial Economics & Financial Accounting
+12.07.24: All Branches-Software Engineering, ECE-Microwave Techniques, EEE-Microprocessors and Microcontrollers
+15.07.24: CSE-Distributed Systems, ECE-MicroControllers, EEE-Power Systems-II, IT-Artificial Intelligence & Machine Learning, CME-Data Science, AI&DS-Machine Learning Techniques
+18.07.24: CSE-Data Mining, ECE-Data Science Using R Programming, EEE-Digital Signal Processing, IT-Open Source Technologies, CME-Internet of Things, AI&DS-Big Data Analytics
+20.07.24: CSE-Digital Image Processing/Mobile Computing, ECE-Wireless Sensor Network, EEE-Linear Integrated Circuits, IT-Natural Language Processing, CME-Cyber Security, AI&DS-Python Programming
+
+=== MBA TIMETABLES ===
+MBA I Sem (B24) Regular February 2025 - Time 1:00PM-4:00PM:
+20.02.25: Management & Organizational Behaviour (MB101)
+22.02.25: Accounting for Management (MB102)
+24.02.25: Marketing Management (MB103)
+27.02.25: Business Research Methods (MB104)
+01.03.25: Managerial Economics (MB105)
+03.03.25: Business Communication/Business Law & Ethics (MB106)
+
+MBA I Sem (B25) Regular February 2026 - Time 1:00PM-4:00PM:
+17.02.26: Management & Organizational Behaviour (MB101)
+19.02.26: Accounting for Management (MB102)
+23.02.26: Marketing Management (MB103)
+25.02.26: Statistics for Research Analysis (MB104)
+27.02.26: Managerial Economics (MB105)
+02.03.26: Business Communication OE-I (MB106)
+
+=== ME/M.TECH TIMETABLES ===
+M.Tech I Sem (B25) Regular February 2026 - Time 1:00PM-4:00PM:
+CSE Branch: 17.02.26-Advanced Algorithms, 19.02.26-Mathematical Foundations of Computer Science, 23.02.26-Advanced Distributed Systems, 25.02.26-Software Testing Methodologies, 27.02.26-Research Methodology
+ECE-ES Branch: 17.02.26-Micro Controllers for Embedded System Design, 19.02.26-Smart Sensors for IoT, 23.02.26-VLSI Design and Technology, 25.02.26-Advance Wireless and Mobile Networks, 27.02.26-Research Methodology & IPR
+
+M.E III Sem (R23) Makeup February 2025 - Time 1:30PM-4:30PM:
+14.02.25: ECE-Real Time Operating Systems, CSE-Software Project Management
+15.02.25: Both branches-Industrial Safety
+
+=== INTERNAL EXAM TIMETABLES ===
+BE II, IV, VI Sem II Internal July 2025: 07.07.2025 - 09.07.2025
+No re-test for absentees. Must clear fee dues for hall ticket.
