@@ -188,8 +188,14 @@ export default function ChatWidget() {
               <div className="header-actions">
                 <button
                   className={`icon-btn ${voiceOutput ? 'active' : ''}`}
-                  onClick={() => setVoiceOutput(v => !v)}
-                  title={voiceOutput ? 'Voice ON' : 'Voice OFF'}
+                  onClick={() => {
+                    if (window.speechSynthesis.speaking) {
+                      window.speechSynthesis.cancel()
+                    } else {
+                      setVoiceOutput(v => !v)
+                    }
+                  }}
+                  title={window.speechSynthesis?.speaking ? 'Stop speaking' : voiceOutput ? 'Voice ON' : 'Voice OFF'}
                 >🔊</button>
                 <button
                   className="icon-btn"
