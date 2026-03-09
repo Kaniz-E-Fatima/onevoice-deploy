@@ -1,5 +1,17 @@
 import ChatWidget from './components/ChatWidget'
 import './styles/home.css'
+import AdminDashboard from './components/AdminDashboard'
+
+export default function App() {
+  // Add this at the top of the component:
+  if (window.location.pathname === '/admin') {
+    return <AdminDashboard />
+  }
+
+  return (
+    // ... your existing JSX
+  )
+}
 
 export default function App() {
   return (

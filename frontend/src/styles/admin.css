@@ -1,0 +1,845 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+/* ── Variables ────────────────────────────────────────────────────────────── */
+:root {
+    --red: #8B0000;
+    --red-mid: #A50000;
+    --red-light: #fff0f0;
+    --red-border: #ffcccc;
+    --black: #1a1a1a;
+    --off-white: #f9f9f9;
+    --border: #e0e0e0;
+    --muted: #888888;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'DM Sans', 'Segoe UI', sans-serif;
+}
+
+/* ── Login ────────────────────────────────────────────────────────────────── */
+.adm-login-bg {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #8B0000 0%, #1a1a1a 60%, #3a0000 100%);
+    font-family: var(--font-body);
+}
+
+.adm-login-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+
+.adm-login-logo {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--red-border);
+    margin-bottom: 16px;
+}
+
+.adm-login-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--black);
+    margin: 0 0 6px;
+}
+
+.adm-login-sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+}
+
+.adm-login-input {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: var(--font-body);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.adm-login-input:focus {
+    border-color: var(--red);
+}
+
+.adm-login-error {
+    color: #ef4444;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.adm-login-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.adm-login-btn:hover {
+    background: var(--red-mid);
+}
+
+.adm-login-hint {
+    color: #bbb;
+    font-size: 12px;
+    margin-top: 16px;
+}
+
+/* ── Root Layout ──────────────────────────────────────────────────────────── */
+.adm-root {
+    min-height: 100vh;
+    background: #f1f5f9;
+    font-family: var(--font-body);
+    color: var(--black);
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.adm-header {
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-mid) 100%);
+    color: #fff;
+    padding: 0 28px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(139, 0, 0, 0.25);
+}
+
+.adm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.adm-header-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.adm-header-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.adm-header-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 2px;
+}
+
+.adm-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.adm-live-badge {
+    font-size: 12px;
+    color: #86efac;
+    font-weight: 600;
+    animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+
+    0%,
+    100% {
+        opacity: 1
+    }
+
+    50% {
+        opacity: 0.5
+    }
+}
+
+.adm-btn-refresh,
+.adm-btn-logout {
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: all 0.18s;
+}
+
+.adm-btn-refresh {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.adm-btn-refresh:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.adm-btn-refresh:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.adm-btn-logout {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.adm-btn-logout:hover {
+    background: rgba(0, 0, 0, 0.2);
+    color: #fff;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+.adm-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 28px 0;
+    background: #f1f5f9;
+    border-bottom: 2px solid var(--border);
+}
+
+.adm-tab {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.18s;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+}
+
+.adm-tab:hover {
+    color: var(--red);
+    background: var(--red-light);
+}
+
+.adm-tab.active {
+    color: var(--red);
+    font-weight: 700;
+    background: #fff;
+    border-bottom-color: var(--red);
+}
+
+/* ── Content ──────────────────────────────────────────────────────────────── */
+.adm-content {
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.adm-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px;
+    color: var(--muted);
+    font-size: 15px;
+}
+
+.adm-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+/* ── Stat Cards ───────────────────────────────────────────────────────────── */
+.adm-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.adm-stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 20px;
+    border-left: 4px solid var(--red);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+    transition: transform 0.18s;
+}
+
+.adm-stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.adm-stat-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.adm-stat-number {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1;
+}
+
+.adm-stat-label {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────────── */
+.adm-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+}
+
+.adm-card-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--black);
+    margin-bottom: 18px;
+}
+
+.adm-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.adm-empty {
+    color: #bbb;
+    font-size: 14px;
+    text-align: center;
+    padding: 28px 0;
+}
+
+/* ── Language Bars (overview) ─────────────────────────────────────────────── */
+.adm-lang-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.adm-lang-bar-label {
+    width: 72px;
+    font-size: 13px;
+    color: #555;
+    text-transform: capitalize;
+}
+
+.adm-lang-bar-track {
+    flex: 1;
+    background: #f1f5f9;
+    border-radius: 99px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.adm-lang-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+}
+
+.adm-lang-bar-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--black);
+    width: 24px;
+    text-align: right;
+}
+
+/* ── Intent list ──────────────────────────────────────────────────────────── */
+.adm-intent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.adm-intent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.adm-intent-rank {
+    width: 28px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--red);
+}
+
+.adm-intent-name {
+    width: 120px;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: capitalize;
+    color: var(--black);
+}
+
+.adm-intent-bar-wrap {
+    flex: 1;
+    background: #f1f5f9;
+    border-radius: 99px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.adm-intent-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), #c0392b);
+    border-radius: 99px;
+    transition: width 0.6s ease;
+}
+
+.adm-intent-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    width: 36px;
+    text-align: right;
+}
+
+/* ── Sessions layout ──────────────────────────────────────────────────────── */
+.adm-sessions-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    min-height: 500px;
+}
+
+.adm-sessions-list-panel {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+    overflow-y: auto;
+    max-height: 75vh;
+}
+
+.adm-search {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: var(--font-body);
+    outline: none;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+}
+
+.adm-search:focus {
+    border-color: var(--red);
+}
+
+.adm-session-count-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.adm-session-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+}
+
+.adm-session-row:hover {
+    background: #f9f9f9;
+}
+
+.adm-session-row.active {
+    background: var(--red-light);
+    border-color: var(--red-border);
+}
+
+.adm-session-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.adm-session-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.adm-session-id {
+    font-family: monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--black);
+}
+
+.adm-session-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    text-transform: capitalize;
+}
+
+.adm-session-time {
+    font-size: 11px;
+    color: #bbb;
+}
+
+/* ── Session detail panel ─────────────────────────────────────────────────── */
+.adm-session-detail-panel {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.adm-detail-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    gap: 12px;
+    font-size: 14px;
+}
+
+.adm-detail-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.adm-detail-id {
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--black);
+    word-break: break-all;
+}
+
+.adm-detail-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: capitalize;
+}
+
+.adm-close-btn {
+    background: none;
+    border: none;
+    color: #bbb;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.adm-close-btn:hover {
+    color: var(--red);
+}
+
+.adm-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 22px;
+    max-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ── Message bubbles ──────────────────────────────────────────────────────── */
+.adm-bubble-wrap {
+    display: flex;
+}
+
+.adm-bubble-wrap.user {
+    justify-content: flex-end;
+}
+
+.adm-bubble-wrap.bot {
+    justify-content: flex-start;
+}
+
+.adm-bubble {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+
+.adm-bubble.bot {
+    background: #f9f9f9;
+    color: var(--black);
+    border-bottom-left-radius: 4px;
+    border-left: 3px solid var(--red);
+}
+
+.adm-bubble.user {
+    background: linear-gradient(135deg, var(--red), var(--red-mid));
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.adm-bubble-role {
+    font-size: 10px;
+    opacity: 0.65;
+    font-weight: 600;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.adm-bubble-time {
+    font-size: 10px;
+    opacity: 0.5;
+    margin-top: 6px;
+}
+
+/* ── Bar chart ────────────────────────────────────────────────────────────── */
+.adm-bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 160px;
+}
+
+.adm-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.adm-bar {
+    width: 100%;
+    background: linear-gradient(180deg, var(--red), #c0392b);
+    border-radius: 6px 6px 0 0;
+    min-height: 4px;
+    transition: height 0.4s ease;
+}
+
+.adm-bar-val {
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+}
+
+.adm-bar-day {
+    font-size: 11px;
+    color: #bbb;
+}
+
+/* ── Table ────────────────────────────────────────────────────────────────── */
+.adm-table-wrap {
+    overflow-x: auto;
+}
+
+.adm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.adm-table thead tr {
+    background: #f9f9f9;
+}
+
+.adm-table th {
+    padding: 10px 14px;
+    text-align: left;
+    color: #555;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.adm-table-row {
+    cursor: pointer;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.15s;
+}
+
+.adm-table-row:hover {
+    background: var(--red-light);
+}
+
+.adm-table td {
+    padding: 10px 14px;
+}
+
+.adm-table-id {
+    font-family: monospace;
+    color: var(--red);
+    font-weight: 600;
+}
+
+.adm-muted {
+    color: var(--muted);
+}
+
+/* ── Language detail ──────────────────────────────────────────────────────── */
+.adm-lang-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.adm-lang-flag {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.adm-lang-name {
+    width: 80px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: var(--black);
+}
+
+.adm-lang-bar-wrap {
+    flex: 1;
+    background: #f1f5f9;
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.adm-lang-bar {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+}
+
+.adm-lang-pct {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--red);
+    width: 40px;
+    text-align: right;
+}
+
+.adm-lang-count {
+    font-size: 12px;
+    color: var(--muted);
+    width: 90px;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+.adm-sessions-list-panel::-webkit-scrollbar,
+.adm-messages-area::-webkit-scrollbar {
+    width: 4px;
+}
+
+.adm-sessions-list-panel::-webkit-scrollbar-thumb,
+.adm-messages-area::-webkit-scrollbar-thumb {
+    background: rgba(139, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .adm-sessions-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .adm-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .adm-header {
+        padding: 0 16px;
+    }
+
+    .adm-header-title {
+        font-size: 14px;
+    }
+
+    .adm-content {
+        padding: 16px;
+    }
+
+    .adm-tabs {
+        padding: 12px 16px 0;
+        gap: 2px;
+    }
+
+    .adm-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .adm-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
