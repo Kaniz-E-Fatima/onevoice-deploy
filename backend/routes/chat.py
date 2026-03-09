@@ -1,51 +1,57 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from datetime import datetime, timezone
-import uuid, time
-from services.rag_service import get_context
+from typing import Optional
 from services.gemini_service import get_gemini_response
+from services.rag_service import get_context
 from database.connection import get_db
-from database.models import chat_session_doc, chat_message_doc, analytics_doc
+from database.models import chat_session_doc, chat_message_doc
+import uuid
+from datetime import datetime
 
 router = APIRouter()
 
 class ChatRequest(BaseModel):
     message: str
-    session_id: str | None = None
+    session_id: Optional[str] = None
+    language: Optional[str] = "english"
 
-class ChatResponse(BaseModel):
-    reply: str
-    session_id: str
-    intent: str
-
-@router.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
+@router.post("/chat")
+async def chat(request: ChatRequest):
     db = get_db()
-    session_id = req.session_id or str(uuid.uuid4())
-    start_time = time.time()
-    
-    if db is not None:
-        existing = await db.chat_sessions.find_one({"session_id": session_id})
-        if not existing:
-            await db.chat_sessions.insert_one(chat_session_doc(session_id))
-            
-    chat_history = []
-    if db is not None:
-        cursor = db.chat_messages.find({"session_id": session_id}).sort("timestamp", -1).limit(6)
-        msgs = await cursor.to_list(length=6)
-        chat_history = list(reversed(msgs))
-        
-    context, intent = get_context(req.message)
-    reply = await get_gemini_response(req.message, context, chat_history)
-    
-    if db is not None:
-        await db.chat_messages.insert_one(chat_message_doc(session_id, "user", req.message, intent))
-        await db.chat_messages.insert_one(chat_message_doc(session_id, "assistant", reply, intent))
+    session_id = request.session_id or str(uuid.uuid4())
+
+    context, intent = get_context(request.message)
+
+    session = await db.chat_sessions.find_one({"session_id": session_id})
+    chat_history = session.get("messages", []) if session else []
+
+    reply = await get_gemini_response(
+        query=request.message,
+        context=context,
+        chat_history=chat_history,
+        language=request.language
+    )
+
+    now = datetime.utcnow()
+    user_msg = chat_message_doc("user", request.message, now)
+    bot_msg = chat_message_doc("assistant", reply, now)
+
+    if session:
         await db.chat_sessions.update_one(
-            {"session_id": session_id}, 
-            {"$inc": {"message_count": 2}, "$set": {"updated_at": datetime.now(timezone.utc)}}
+            {"session_id": session_id},
+            {"$push": {"messages": {"$each": [user_msg, bot_msg]}},
+             "$set": {"updated_at": now}}
         )
-        response_time_ms = int((time.time() - start_time) * 1000)
-        await db.analytics.insert_one(analytics_doc(session_id, req.message, intent, response_time_ms))
-        
-    return ChatResponse(reply=reply, session_id=session_id, intent=intent)
+    else:
+        await db.chat_sessions.insert_one(
+            chat_session_doc(session_id, [user_msg, bot_msg])
+        )
+
+    await db.analytics.insert_one({
+        "session_id": session_id,
+        "intent": intent,
+        "language": request.language,
+        "timestamp": now
+    })
+
+    return {"reply": reply, "session_id": session_id, "intent": intent}
