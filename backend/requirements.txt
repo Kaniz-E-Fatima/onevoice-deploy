@@ -1,8 +1,8 @@
 ﻿fastapi
-uvicorn
+uvicorn[standard]
 motor
-pymongo
 python-dotenv
-google-generativeai
-pydantic
 groq
+pydantic
+pymupdf
+pypdf

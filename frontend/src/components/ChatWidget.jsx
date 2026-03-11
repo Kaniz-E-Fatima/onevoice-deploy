@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { sendMessage } from '../services/api'
 import ChatMessages from './ChatMessages'
 import ChatInput from './ChatInput'
@@ -31,51 +31,75 @@ const WELCOME_MESSAGES = {
 const STORAGE_KEY = 'onevoice_chat_history'
 const SETTINGS_KEY = 'onevoice_settings'
 
+// ── Voice language map (expanded for better coverage) ─────────────────────────
+const VOICE_LANG_MAP = {
+  english: ['en-IN', 'en-US', 'en-GB'],
+  hindi: ['hi-IN', 'hi'],
+  urdu: ['ur-PK', 'ur-IN', 'ur'],
+  telugu: ['te-IN', 'te'],
+  tamil: ['ta-IN', 'ta-SG', 'ta'],
+}
+
+// ── Find best voice for language ──────────────────────────────────────────────
+function findVoice(language) {
+  const voices = window.speechSynthesis.getVoices()
+  const preferred = VOICE_LANG_MAP[language] || ['en-IN']
+
+  for (const code of preferred) {
+    // Exact match first
+    const exact = voices.find(v => v.lang === code)
+    if (exact) return exact
+    // Prefix match
+    const prefix = voices.find(v => v.lang.startsWith(code.split('-')[0]))
+    if (prefix) return prefix
+  }
+
+  // Last resort: use any available voice
+  return voices.find(v => v.lang.startsWith('en')) || voices[0] || null
+}
+
+// ── Speak text ────────────────────────────────────────────────────────────────
 function speakText(text, language) {
   if (!window.speechSynthesis) return
+
+  // Always cancel any ongoing speech first
   window.speechSynthesis.cancel()
 
-  const trySpeak = () => {
+  const doSpeak = () => {
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 0.85
-    utterance.pitch = 1
-    const voices = window.speechSynthesis.getVoices()
+    utterance.rate = 0.88
+    utterance.pitch = 1.05
+    utterance.volume = 1
 
-    const langMap = {
-      english: ['en-IN', 'en-US', 'en-GB'],
-      hindi: ['hi-IN', 'hi'],
-      urdu: ['ur-PK', 'ur-IN', 'ur'],
-      telugu: ['te-IN', 'te'],
-      tamil: ['ta-IN', 'ta-SG', 'ta'],
-    }
-
-    const preferred = langMap[language] || ['en-IN']
-    let matched = null
-
-    for (const code of preferred) {
-      matched = voices.find(v => v.lang === code) || voices.find(v => v.lang.startsWith(code.split('-')[0]))
-      if (matched) break
-    }
-
-    if (matched) {
-      utterance.voice = matched
-      utterance.lang = matched.lang
+    const voice = findVoice(language)
+    if (voice) {
+      utterance.voice = voice
+      utterance.lang = voice.lang
     } else {
-      // Fallback — use English voice but still speak the text
-      utterance.lang = 'en-IN'
+      // Set lang manually even without a matched voice
+      const langCodes = { english: 'en-IN', hindi: 'hi-IN', urdu: 'ur-PK', telugu: 'te-IN', tamil: 'ta-IN' }
+      utterance.lang = langCodes[language] || 'en-IN'
     }
 
+    utterance.onerror = (e) => console.warn('Speech error:', e.error)
     window.speechSynthesis.speak(utterance)
   }
 
-  // Wait for voices to load if not ready
+  // Wait for voices to be loaded
   if (window.speechSynthesis.getVoices().length === 0) {
     window.speechSynthesis.onvoiceschanged = () => {
-      trySpeak()
       window.speechSynthesis.onvoiceschanged = null
+      doSpeak()
     }
   } else {
-    trySpeak()
+    doSpeak()
+  }
+}
+
+// ── Stop speech ───────────────────────────────────────────────────────────────
+function stopSpeech() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel()
   }
 }
 
@@ -83,6 +107,7 @@ export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMaximized, setIsMaximized] = useState(false)
   const [language, setLanguage] = useState('english')
+  const [isSpeaking, setIsSpeaking] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     try { return JSON.parse(localStorage.getItem(SETTINGS_KEY))?.darkMode || false } catch { return false }
   })
@@ -101,6 +126,15 @@ export default function ChatWidget() {
   const [typingText, setTypingText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+
+  // Track speaking state
+  useEffect(() => {
+    if (!window.speechSynthesis) return
+    const interval = setInterval(() => {
+      setIsSpeaking(window.speechSynthesis.speaking)
+    }, 300)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)) } catch { }
@@ -123,12 +157,12 @@ export default function ChatWidget() {
         setTypingText('')
         onDone(text)
       }
-    }, 18)
+    }, 16)
   }
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang)
-    // Don't clear messages — keep history across language switches
+    stopSpeech()
     setSessionId(null)
   }
 
@@ -144,13 +178,15 @@ export default function ChatWidget() {
       typeMessage(data.reply, (finalText) => {
         setMessages(prev => [...prev, { role: 'assistant', content: finalText, showFeedback: true }])
         if (voiceOutput) {
-          window.speechSynthesis.getVoices()
           setTimeout(() => speakText(finalText, language), 100)
         }
       })
     } catch (err) {
       setLoading(false)
-      setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I'm having trouble connecting. Please visit www.stanley.edu.in" }])
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "Sorry, I'm having trouble connecting. Please visit www.stanley.edu.in or try again in a moment."
+      }])
     }
   }
 
@@ -166,10 +202,23 @@ export default function ChatWidget() {
   }
 
   const clearHistory = () => {
+    stopSpeech()
     setMessages([{ role: 'assistant', content: WELCOME_MESSAGES[language] }])
     setSessionId(null)
     setShowSuggestions(true)
     localStorage.removeItem(STORAGE_KEY)
+  }
+
+  // ── Voice button handler ───────────────────────────────────────────────────
+  const handleVoiceToggle = () => {
+    if (isSpeaking) {
+      // If currently speaking → stop immediately
+      stopSpeech()
+      setIsSpeaking(false)
+    } else {
+      // Toggle voice output on/off
+      setVoiceOutput(v => !v)
+    }
   }
 
   return (
@@ -179,6 +228,7 @@ export default function ChatWidget() {
           <div className="chat-header">
             <div className="chat-header-top">
               <div className="chat-header-info">
+                {/* College logo INSIDE the widget header */}
                 <img src="/logo.png" alt="SC" className="chat-avatar" />
                 <div>
                   <div className="chat-title">OneVoice</div>
@@ -186,38 +236,23 @@ export default function ChatWidget() {
                 </div>
               </div>
               <div className="header-actions">
+                {/* Voice button — stops if speaking, toggles if not */}
                 <button
-                  className={`icon-btn ${voiceOutput ? 'active' : ''}`}
-                  onClick={() => {
-                    if (window.speechSynthesis.speaking) {
-                      window.speechSynthesis.cancel()
-                    } else {
-                      setVoiceOutput(v => !v)
-                    }
-                  }}
-                  title={window.speechSynthesis?.speaking ? 'Stop speaking' : voiceOutput ? 'Voice ON' : 'Voice OFF'}
-                >🔊</button>
-                <button
-                  className="icon-btn"
-                  onClick={() => setShowHistory(h => !h)}
-                  title="Chat history"
-                >📋</button>
-                <button
-                  className="icon-btn"
-                  onClick={() => setDarkMode(d => !d)}
-                  title="Dark mode"
-                >{darkMode ? '☀️' : '🌙'}</button>
-                <button
-                  className="icon-btn"
-                  onClick={() => setIsMaximized(m => !m)}
-                  title="Maximize"
-                >{isMaximized ? '⊡' : '⊞'}</button>
-                <button
-                  className="icon-btn"
-                  onClick={clearHistory}
-                  title="Clear history"
-                >🗑️</button>
-                <button className="chat-close-btn" onClick={() => setIsOpen(false)}>✕</button>
+                  className={`icon-btn ${voiceOutput ? 'active' : ''} ${isSpeaking ? 'speaking' : ''}`}
+                  onClick={handleVoiceToggle}
+                  title={isSpeaking ? 'Stop speaking' : voiceOutput ? 'Voice ON (click to turn off)' : 'Voice OFF (click to turn on)'}
+                >
+                  {isSpeaking ? '⏹' : '🔊'}
+                </button>
+                <button className="icon-btn" onClick={() => setShowHistory(h => !h)} title="Chat history">📋</button>
+                <button className="icon-btn" onClick={() => setDarkMode(d => !d)} title="Dark mode">
+                  {darkMode ? '☀️' : '🌙'}
+                </button>
+                <button className="icon-btn" onClick={() => setIsMaximized(m => !m)} title="Maximize">
+                  {isMaximized ? '⊡' : '⊞'}
+                </button>
+                <button className="icon-btn" onClick={clearHistory} title="Clear history">🗑️</button>
+                <button className="chat-close-btn" onClick={() => { setIsOpen(false); stopSpeech() }}>✕</button>
               </div>
             </div>
             <div className="lang-selector">
@@ -238,7 +273,9 @@ export default function ChatWidget() {
                 {messages.map((msg, i) => (
                   <div key={i} className={`history-item ${msg.role}`}>
                     <span className="history-role">{msg.role === 'user' ? '👤 You' : '🤖 OneVoice'}</span>
-                    <span className="history-content">{msg.content.slice(0, 80)}{msg.content.length > 80 ? '...' : ''}</span>
+                    <span className="history-content">
+                      {msg.content.slice(0, 80)}{msg.content.length > 80 ? '...' : ''}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -265,8 +302,15 @@ export default function ChatWidget() {
           )}
         </div>
       )}
-      <button className="chat-fab" onClick={() => setIsOpen(o => !o)}>
-        {isOpen ? '✕' : <img src="/logo.png" alt="OneVoice" className="fab-logo" />}
+
+      {/* FAB button — text outside, logo inside widget */}
+      <button className="chat-fab" onClick={() => { setIsOpen(o => !o); if (isOpen) stopSpeech() }}>
+        {isOpen ? '✕' : (
+          <div className="fab-text-content">
+            <span className="fab-ask">Ask</span>
+            <span className="fab-brand">OneVoice AI</span>
+          </div>
+        )}
       </button>
     </div>
   )
