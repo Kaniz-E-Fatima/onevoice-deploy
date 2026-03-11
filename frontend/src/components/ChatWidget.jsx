@@ -4,6 +4,8 @@ import ChatMessages from './ChatMessages'
 import ChatInput from './ChatInput'
 import '../styles/widget.css'
 
+const API_URL = import.meta.env.VITE_API_URL || '/api'
+
 const LANGUAGES = [
   { code: 'english', label: 'EN' },
   { code: 'hindi', label: 'हि' },
@@ -31,7 +33,6 @@ const WELCOME_MESSAGES = {
 const STORAGE_KEY = 'onevoice_chat_history'
 const SETTINGS_KEY = 'onevoice_settings'
 
-// ── Language configs ──────────────────────────────────────────────────────────
 const LANG_CONFIG = {
   english: { codes: ['en-IN', 'en-US', 'en-GB'], bcp47: 'en-IN' },
   hindi: { codes: ['hi-IN', 'hi'], bcp47: 'hi-IN' },
@@ -40,76 +41,54 @@ const LANG_CONFIG = {
   tamil: { codes: ['ta-IN', 'ta-SG', 'ta'], bcp47: 'ta-IN' },
 }
 
-// ── Find best available voice ─────────────────────────────────────────────────
 function findBestVoice(language) {
   const voices = window.speechSynthesis.getVoices()
   const config = LANG_CONFIG[language] || LANG_CONFIG.english
-
-  // 1. Exact match
   for (const code of config.codes) {
     const v = voices.find(v => v.lang === code)
     if (v) return v
   }
-
-  // 2. Prefix match (e.g. "te" matches "te-IN")
   for (const code of config.codes) {
     const prefix = code.split('-')[0]
     const v = voices.find(v => v.lang.startsWith(prefix))
     if (v) return v
   }
-
-  // 3. For non-supported languages, use Hindi as closest fallback for Urdu
-  //    and English for Telugu/Tamil (better than nothing)
   if (language === 'urdu') {
     const hindi = voices.find(v => v.lang.startsWith('hi'))
     if (hindi) return hindi
   }
-
-  // 4. Final fallback: English India
-  return voices.find(v => v.lang === 'en-IN') ||
-    voices.find(v => v.lang.startsWith('en')) ||
-    voices[0] || null
+  return voices.find(v => v.lang === 'en-IN') || voices.find(v => v.lang.startsWith('en')) || voices[0] || null
 }
 
-// ── Speak with best available voice ──────────────────────────────────────────
 function speakText(text, language) {
   if (!window.speechSynthesis) return
   window.speechSynthesis.cancel()
-
   const doSpeak = () => {
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.rate = 0.85
     utterance.pitch = 1.0
     utterance.volume = 1.0
-
     const voice = findBestVoice(language)
-    if (voice) {
-      utterance.voice = voice
-      utterance.lang = voice.lang
-    } else {
-      utterance.lang = LANG_CONFIG[language]?.bcp47 || 'en-IN'
-    }
-
-    utterance.onerror = (e) => {
-      if (e.error !== 'interrupted') console.warn('TTS error:', e.error)
-    }
-
+    if (voice) { utterance.voice = voice; utterance.lang = voice.lang }
+    else utterance.lang = LANG_CONFIG[language]?.bcp47 || 'en-IN'
+    utterance.onerror = (e) => { if (e.error !== 'interrupted') console.warn('TTS:', e.error) }
     window.speechSynthesis.speak(utterance)
   }
-
-  const voices = window.speechSynthesis.getVoices()
-  if (voices.length === 0) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.onvoiceschanged = null
-      doSpeak()
-    }
-  } else {
-    doSpeak()
-  }
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; doSpeak() }
+  } else { doSpeak() }
 }
 
 function stopSpeech() {
   if (window.speechSynthesis) window.speechSynthesis.cancel()
+}
+
+// ── Backend wake-up check ─────────────────────────────────────────────────────
+async function checkBackendAwake() {
+  try {
+    const res = await fetch(`${API_URL.replace('/api', '')}/health`, { signal: AbortSignal.timeout(5000) })
+    return res.ok
+  } catch { return false }
 }
 
 export default function ChatWidget() {
@@ -117,6 +96,8 @@ export default function ChatWidget() {
   const [isMaximized, setIsMaximized] = useState(false)
   const [language, setLanguage] = useState('english')
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [backendStatus, setBackendStatus] = useState('unknown') // 'unknown' | 'waking' | 'ready'
+  const [wakeUpSeconds, setWakeUpSeconds] = useState(0)
   const [darkMode, setDarkMode] = useState(() => {
     try { return JSON.parse(localStorage.getItem(SETTINGS_KEY))?.darkMode || false } catch { return false }
   })
@@ -135,13 +116,54 @@ export default function ChatWidget() {
   const [typingText, setTypingText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const wakeTimerRef = useRef(null)
 
-  // Poll speaking state
+  // ── Wake up backend when widget opens ────────────────────────────────────
+  useEffect(() => {
+    if (!isOpen) return
+    if (backendStatus === 'ready') return
+
+    setBackendStatus('waking')
+    setWakeUpSeconds(0)
+
+    // Start timer
+    wakeTimerRef.current = setInterval(() => {
+      setWakeUpSeconds(s => s + 1)
+    }, 1000)
+
+    // Poll until backend is awake
+    const poll = async () => {
+      for (let i = 0; i < 30; i++) {
+        const awake = await checkBackendAwake()
+        if (awake) {
+          setBackendStatus('ready')
+          clearInterval(wakeTimerRef.current)
+          return
+        }
+        await new Promise(r => setTimeout(r, 3000))
+      }
+      // After 90s give up and let user try anyway
+      setBackendStatus('ready')
+      clearInterval(wakeTimerRef.current)
+    }
+    poll()
+
+    return () => clearInterval(wakeTimerRef.current)
+  }, [isOpen])
+
+  // ── Keep-alive ping every 10 mins ─────────────────────────────────────────
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        await fetch(`${API_URL.replace('/api', '')}/ping`, { signal: AbortSignal.timeout(5000) })
+      } catch { }
+    }, 600000) // 10 minutes
+    return () => clearInterval(interval)
+  }, [])
+
   useEffect(() => {
     if (!window.speechSynthesis) return
-    const interval = setInterval(() => {
-      setIsSpeaking(!!window.speechSynthesis.speaking)
-    }, 250)
+    const interval = setInterval(() => setIsSpeaking(!!window.speechSynthesis.speaking), 250)
     return () => clearInterval(interval)
   }, [])
 
@@ -186,22 +208,18 @@ export default function ChatWidget() {
       setLoading(false)
       typeMessage(data.reply, (finalText) => {
         setMessages(prev => [...prev, { role: 'assistant', content: finalText, showFeedback: true }])
-        if (voiceOutput) {
-          setTimeout(() => speakText(finalText, language), 150)
-        }
+        if (voiceOutput) setTimeout(() => speakText(finalText, language), 150)
       })
     } catch (err) {
       setLoading(false)
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: "Sorry, I'm having trouble connecting. Please visit www.stanley.edu.in or try again in a moment."
+        content: "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
       }])
     }
   }
 
-  const handleSuggestion = (suggestion) => {
-    handleSend(suggestion.replace(/[💰📅📊🏢🎉]/g, '').trim())
-  }
+  const handleSuggestion = (suggestion) => handleSend(suggestion.replace(/[💰📅📊🏢🎉]/g, '').trim())
 
   const handleFeedback = (index, type) => {
     setMessages(prev => prev.map((msg, i) =>
@@ -217,14 +235,9 @@ export default function ChatWidget() {
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  // ── Voice button: stop if speaking, toggle if not ─────────────────────────
   const handleVoiceToggle = () => {
-    if (isSpeaking) {
-      stopSpeech()
-      setIsSpeaking(false)
-    } else {
-      setVoiceOutput(v => !v)
-    }
+    if (isSpeaking) { stopSpeech(); setIsSpeaking(false) }
+    else setVoiceOutput(v => !v)
   }
 
   return (
@@ -237,20 +250,25 @@ export default function ChatWidget() {
                 <img src="/logo.png" alt="SC" className="chat-avatar" />
                 <div>
                   <div className="chat-title">OneVoice</div>
-                  <div className="chat-subtitle">Stanley College · AI Assistant</div>
+                  <div className="chat-subtitle">
+                    Stanley College · AI Assistant
+                    {backendStatus === 'waking' && (
+                      <span className="waking-badge"> · ⏳ Starting up...</span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="header-actions">
                 <button
                   className={`icon-btn ${voiceOutput ? 'active' : ''} ${isSpeaking ? 'speaking' : ''}`}
                   onClick={handleVoiceToggle}
-                  title={isSpeaking ? '⏹ Stop speaking' : voiceOutput ? '🔊 Voice ON' : '🔇 Voice OFF'}
+                  title={isSpeaking ? 'Stop speaking' : voiceOutput ? 'Voice ON' : 'Voice OFF'}
                 >{isSpeaking ? '⏹' : '🔊'}</button>
                 <button className="icon-btn" onClick={() => setShowHistory(h => !h)} title="History">📋</button>
-                <button className="icon-btn" onClick={() => setDarkMode(d => !d)} title="Dark mode">
+                <button className="icon-btn" onClick={() => setDarkMode(d => !d)}>
                   {darkMode ? '☀️' : '🌙'}
                 </button>
-                <button className="icon-btn" onClick={() => setIsMaximized(m => !m)} title="Maximize">
+                <button className="icon-btn" onClick={() => setIsMaximized(m => !m)}>
                   {isMaximized ? '⊡' : '⊞'}
                 </button>
                 <button className="icon-btn" onClick={clearHistory} title="Clear">🗑️</button>
@@ -268,7 +286,18 @@ export default function ChatWidget() {
             </div>
           </div>
 
-          {showHistory ? (
+          {/* Wake-up screen */}
+          {backendStatus === 'waking' ? (
+            <div className="waking-screen">
+              <div className="waking-spinner" />
+              <div className="waking-title">Starting OneVoice...</div>
+              <div className="waking-sub">
+                Our server is waking up. This takes about 30 seconds on first visit.
+              </div>
+              <div className="waking-timer">{wakeUpSeconds}s</div>
+              <div className="waking-tip">☕ Just a moment while we get ready for you!</div>
+            </div>
+          ) : showHistory ? (
             <div className="history-panel">
               <div className="history-title">💬 Chat History ({messages.length} messages)</div>
               <div className="history-list">
@@ -305,7 +334,6 @@ export default function ChatWidget() {
         </div>
       )}
 
-      {/* FAB — text pill outside, logo inside */}
       <button className="chat-fab" onClick={() => { setIsOpen(o => !o); if (isOpen) stopSpeech() }}>
         {isOpen ? '✕' : (
           <div className="fab-text-content">
