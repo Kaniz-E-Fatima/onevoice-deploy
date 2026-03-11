@@ -31,62 +31,74 @@ const WELCOME_MESSAGES = {
 const STORAGE_KEY = 'onevoice_chat_history'
 const SETTINGS_KEY = 'onevoice_settings'
 
-// ── Voice language map (expanded for better coverage) ─────────────────────────
-const VOICE_LANG_MAP = {
-  english: ['en-IN', 'en-US', 'en-GB'],
-  hindi: ['hi-IN', 'hi'],
-  urdu: ['ur-PK', 'ur-IN', 'ur'],
-  telugu: ['te-IN', 'te'],
-  tamil: ['ta-IN', 'ta-SG', 'ta'],
+// ── Language configs ──────────────────────────────────────────────────────────
+const LANG_CONFIG = {
+  english: { codes: ['en-IN', 'en-US', 'en-GB'], bcp47: 'en-IN' },
+  hindi: { codes: ['hi-IN', 'hi'], bcp47: 'hi-IN' },
+  urdu: { codes: ['ur-PK', 'ur-IN', 'ur'], bcp47: 'ur-PK' },
+  telugu: { codes: ['te-IN', 'te'], bcp47: 'te-IN' },
+  tamil: { codes: ['ta-IN', 'ta-SG', 'ta'], bcp47: 'ta-IN' },
 }
 
-// ── Find best voice for language ──────────────────────────────────────────────
-function findVoice(language) {
+// ── Find best available voice ─────────────────────────────────────────────────
+function findBestVoice(language) {
   const voices = window.speechSynthesis.getVoices()
-  const preferred = VOICE_LANG_MAP[language] || ['en-IN']
+  const config = LANG_CONFIG[language] || LANG_CONFIG.english
 
-  for (const code of preferred) {
-    // Exact match first
-    const exact = voices.find(v => v.lang === code)
-    if (exact) return exact
-    // Prefix match
-    const prefix = voices.find(v => v.lang.startsWith(code.split('-')[0]))
-    if (prefix) return prefix
+  // 1. Exact match
+  for (const code of config.codes) {
+    const v = voices.find(v => v.lang === code)
+    if (v) return v
   }
 
-  // Last resort: use any available voice
-  return voices.find(v => v.lang.startsWith('en')) || voices[0] || null
+  // 2. Prefix match (e.g. "te" matches "te-IN")
+  for (const code of config.codes) {
+    const prefix = code.split('-')[0]
+    const v = voices.find(v => v.lang.startsWith(prefix))
+    if (v) return v
+  }
+
+  // 3. For non-supported languages, use Hindi as closest fallback for Urdu
+  //    and English for Telugu/Tamil (better than nothing)
+  if (language === 'urdu') {
+    const hindi = voices.find(v => v.lang.startsWith('hi'))
+    if (hindi) return hindi
+  }
+
+  // 4. Final fallback: English India
+  return voices.find(v => v.lang === 'en-IN') ||
+    voices.find(v => v.lang.startsWith('en')) ||
+    voices[0] || null
 }
 
-// ── Speak text ────────────────────────────────────────────────────────────────
+// ── Speak with best available voice ──────────────────────────────────────────
 function speakText(text, language) {
   if (!window.speechSynthesis) return
-
-  // Always cancel any ongoing speech first
   window.speechSynthesis.cancel()
 
   const doSpeak = () => {
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.rate = 0.88
-    utterance.pitch = 1.05
-    utterance.volume = 1
+    utterance.rate = 0.85
+    utterance.pitch = 1.0
+    utterance.volume = 1.0
 
-    const voice = findVoice(language)
+    const voice = findBestVoice(language)
     if (voice) {
       utterance.voice = voice
       utterance.lang = voice.lang
     } else {
-      // Set lang manually even without a matched voice
-      const langCodes = { english: 'en-IN', hindi: 'hi-IN', urdu: 'ur-PK', telugu: 'te-IN', tamil: 'ta-IN' }
-      utterance.lang = langCodes[language] || 'en-IN'
+      utterance.lang = LANG_CONFIG[language]?.bcp47 || 'en-IN'
     }
 
-    utterance.onerror = (e) => console.warn('Speech error:', e.error)
+    utterance.onerror = (e) => {
+      if (e.error !== 'interrupted') console.warn('TTS error:', e.error)
+    }
+
     window.speechSynthesis.speak(utterance)
   }
 
-  // Wait for voices to be loaded
-  if (window.speechSynthesis.getVoices().length === 0) {
+  const voices = window.speechSynthesis.getVoices()
+  if (voices.length === 0) {
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.onvoiceschanged = null
       doSpeak()
@@ -96,11 +108,8 @@ function speakText(text, language) {
   }
 }
 
-// ── Stop speech ───────────────────────────────────────────────────────────────
 function stopSpeech() {
-  if (window.speechSynthesis) {
-    window.speechSynthesis.cancel()
-  }
+  if (window.speechSynthesis) window.speechSynthesis.cancel()
 }
 
 export default function ChatWidget() {
@@ -127,12 +136,12 @@ export default function ChatWidget() {
   const [isTyping, setIsTyping] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
-  // Track speaking state
+  // Poll speaking state
   useEffect(() => {
     if (!window.speechSynthesis) return
     const interval = setInterval(() => {
-      setIsSpeaking(window.speechSynthesis.speaking)
-    }, 300)
+      setIsSpeaking(!!window.speechSynthesis.speaking)
+    }, 250)
     return () => clearInterval(interval)
   }, [])
 
@@ -178,7 +187,7 @@ export default function ChatWidget() {
       typeMessage(data.reply, (finalText) => {
         setMessages(prev => [...prev, { role: 'assistant', content: finalText, showFeedback: true }])
         if (voiceOutput) {
-          setTimeout(() => speakText(finalText, language), 100)
+          setTimeout(() => speakText(finalText, language), 150)
         }
       })
     } catch (err) {
@@ -191,8 +200,7 @@ export default function ChatWidget() {
   }
 
   const handleSuggestion = (suggestion) => {
-    const text = suggestion.replace(/[💰📅📊🏢🎉]/g, '').trim()
-    handleSend(text)
+    handleSend(suggestion.replace(/[💰📅📊🏢🎉]/g, '').trim())
   }
 
   const handleFeedback = (index, type) => {
@@ -209,14 +217,12 @@ export default function ChatWidget() {
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  // ── Voice button handler ───────────────────────────────────────────────────
+  // ── Voice button: stop if speaking, toggle if not ─────────────────────────
   const handleVoiceToggle = () => {
     if (isSpeaking) {
-      // If currently speaking → stop immediately
       stopSpeech()
       setIsSpeaking(false)
     } else {
-      // Toggle voice output on/off
       setVoiceOutput(v => !v)
     }
   }
@@ -228,7 +234,6 @@ export default function ChatWidget() {
           <div className="chat-header">
             <div className="chat-header-top">
               <div className="chat-header-info">
-                {/* College logo INSIDE the widget header */}
                 <img src="/logo.png" alt="SC" className="chat-avatar" />
                 <div>
                   <div className="chat-title">OneVoice</div>
@@ -236,22 +241,19 @@ export default function ChatWidget() {
                 </div>
               </div>
               <div className="header-actions">
-                {/* Voice button — stops if speaking, toggles if not */}
                 <button
                   className={`icon-btn ${voiceOutput ? 'active' : ''} ${isSpeaking ? 'speaking' : ''}`}
                   onClick={handleVoiceToggle}
-                  title={isSpeaking ? 'Stop speaking' : voiceOutput ? 'Voice ON (click to turn off)' : 'Voice OFF (click to turn on)'}
-                >
-                  {isSpeaking ? '⏹' : '🔊'}
-                </button>
-                <button className="icon-btn" onClick={() => setShowHistory(h => !h)} title="Chat history">📋</button>
+                  title={isSpeaking ? '⏹ Stop speaking' : voiceOutput ? '🔊 Voice ON' : '🔇 Voice OFF'}
+                >{isSpeaking ? '⏹' : '🔊'}</button>
+                <button className="icon-btn" onClick={() => setShowHistory(h => !h)} title="History">📋</button>
                 <button className="icon-btn" onClick={() => setDarkMode(d => !d)} title="Dark mode">
                   {darkMode ? '☀️' : '🌙'}
                 </button>
                 <button className="icon-btn" onClick={() => setIsMaximized(m => !m)} title="Maximize">
                   {isMaximized ? '⊡' : '⊞'}
                 </button>
-                <button className="icon-btn" onClick={clearHistory} title="Clear history">🗑️</button>
+                <button className="icon-btn" onClick={clearHistory} title="Clear">🗑️</button>
                 <button className="chat-close-btn" onClick={() => { setIsOpen(false); stopSpeech() }}>✕</button>
               </div>
             </div>
@@ -303,7 +305,7 @@ export default function ChatWidget() {
         </div>
       )}
 
-      {/* FAB button — text outside, logo inside widget */}
+      {/* FAB — text pill outside, logo inside */}
       <button className="chat-fab" onClick={() => { setIsOpen(o => !o); if (isOpen) stopSpeech() }}>
         {isOpen ? '✕' : (
           <div className="fab-text-content">
