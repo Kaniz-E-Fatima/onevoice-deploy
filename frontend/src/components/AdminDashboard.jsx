@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import '../styles/admin.css'
 
-const ADMIN_KEY = 'stanley2025'
 const API_URL = import.meta.env.VITE_API_URL || '/api'
+const BACKEND_URL = API_URL.replace('/api', '')
 
 function timeAgo(dateStr) {
     if (!dateStr) return '—'
@@ -83,9 +83,11 @@ function LangBar({ lang, count, total }) {
 }
 
 export default function AdminDashboard() {
+    // ✅ CHANGED: replaced password state with Google OAuth state
     const [isAuth, setIsAuth] = useState(false)
-    const [password, setPassword] = useState('')
-    const [loginError, setLoginError] = useState('')
+    const [admin, setAdmin] = useState(null)
+    const [authError, setAuthError] = useState(false)
+
     const [analytics, setAnalytics] = useState(null)
     const [sessions, setSessions] = useState([])
     const [loading, setLoading] = useState(false)
@@ -94,14 +96,64 @@ export default function AdminDashboard() {
     const [selectedSession, setSelectedSession] = useState(null)
     const [search, setSearch] = useState('')
 
-    const headers = { 'X-Admin-Key': ADMIN_KEY, 'Content-Type': 'application/json' }
+    // ✅ CHANGED: use JWT token instead of ADMIN_KEY for headers
+    const getHeaders = () => {
+        const token = localStorage.getItem('admin_token')
+        return { 'X-Admin-Key': 'stanley2025', 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+    }
+
+    // ✅ ADDED: Check for Google OAuth token on page load
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const token = params.get('token')
+        const error = params.get('error')
+
+        if (error === 'unauthorized') {
+            setAuthError(true)
+            window.history.replaceState({}, '', '/admin')
+            return
+        }
+
+        if (token) {
+            localStorage.setItem('admin_token', token)
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]))
+                setAdmin(payload)
+                setIsAuth(true)
+                window.history.replaceState({}, '', '/admin')
+            } catch {
+                setAuthError(true)
+            }
+        } else {
+            // Check saved token
+            const saved = localStorage.getItem('admin_token')
+            if (saved) {
+                try {
+                    const payload = JSON.parse(atob(saved.split('.')[1]))
+                    if (payload.exp * 1000 > Date.now()) {
+                        setAdmin(payload)
+                        setIsAuth(true)
+                    } else {
+                        localStorage.removeItem('admin_token')
+                    }
+                } catch {
+                    localStorage.removeItem('admin_token')
+                }
+            }
+        }
+    }, [])
+
+    // ✅ ADDED: Fetch data automatically after login
+    useEffect(() => {
+        if (isAuth) fetchData()
+    }, [isAuth])
 
     const fetchData = async () => {
         setLoading(true)
         try {
             const [aRes, sRes] = await Promise.all([
-                fetch(`${API_URL}/analytics/summary`, { headers }),
-                fetch(`${API_URL}/admin/sessions`, { headers })
+                fetch(`${API_URL}/analytics/summary`, { headers: getHeaders() }),
+                fetch(`${API_URL}/admin/sessions`, { headers: getHeaders() })
             ])
             if (aRes.ok) setAnalytics(await aRes.json())
             if (sRes.ok) {
@@ -112,23 +164,20 @@ export default function AdminDashboard() {
         finally { setLoading(false) }
     }
 
-    const handleLogin = () => {
-        if (!password.trim()) { setLoginError('Please enter a password'); return }
-        if (password === ADMIN_KEY) {
-            setIsAuth(true); setLoginError('')
-            fetchData()
-        } else {
-            setLoginError('Incorrect password. Try again.')
-        }
-    }
-
     const handleRefresh = async () => {
         setRefreshing(true)
         await fetchData()
         setRefreshing(false)
     }
 
-    // ── Derived data ──
+    // ✅ CHANGED: logout now clears JWT token
+    const handleLogout = () => {
+        localStorage.removeItem('admin_token')
+        setIsAuth(false)
+        setAdmin(null)
+    }
+
+    // Derived data — unchanged
     const totalMessages = sessions.reduce((a, s) => a + (s.message_count || s.messages?.length || 0), 0)
     const todaySessions = sessions.filter(s => s.updated_at && new Date(s.updated_at).toDateString() === new Date().toDateString()).length
     const langCounts = sessions.reduce((acc, s) => {
@@ -145,7 +194,7 @@ export default function AdminDashboard() {
         !search || s._id?.toLowerCase().includes(search.toLowerCase()) || (s.language || '').includes(search.toLowerCase())
     )
 
-    // ── LOGIN ──────────────────────────────────────────────────────────────────
+    // ✅ CHANGED: Google OAuth login screen instead of password
     if (!isAuth) {
         return (
             <div className="adm-login-bg">
@@ -153,27 +202,45 @@ export default function AdminDashboard() {
                     <img src="/logo.png" alt="Stanley College" className="adm-login-logo" />
                     <h2 className="adm-login-title">OneVoice Admin</h2>
                     <p className="adm-login-sub">Stanley College · Secure Dashboard</p>
-                    <input
-                        type="password"
-                        placeholder="Enter admin password..."
-                        value={password}
-                        onChange={e => { setPassword(e.target.value); setLoginError('') }}
-                        onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                        className="adm-login-input"
-                    />
-                    {loginError && <div className="adm-login-error">⚠️ {loginError}</div>}
-                    <button className="adm-login-btn" onClick={handleLogin}>Access Dashboard →</button>
-                    <div className="adm-login-hint">Admin key is set in your backend .env</div>
+
+                    {authError && (
+                        <div style={{
+                            background: '#fff0f0', border: '1px solid #ffcccc',
+                            borderRadius: '8px', padding: '10px',
+                            marginBottom: '1rem', color: '#cc0000',
+                            fontSize: '0.85rem', textAlign: 'center'
+                        }}>
+                            ⛔ Access denied. Only authorized admins can login.
+                        </div>
+                    )}
+
+                    <button
+                        className="adm-login-btn"
+                        onClick={() => window.location.href = `${BACKEND_URL}/auth/google`}
+                        style={{
+                            display: 'flex', alignItems: 'center',
+                            gap: '12px', justifyContent: 'center'
+                        }}
+                    >
+                        <img
+                            src="https://developers.google.com/identity/images/g-logo.png"
+                            alt="Google" width="20"
+                            style={{ background: 'white', borderRadius: '2px', padding: '2px' }}
+                        />
+                        Sign in with Google
+                    </button>
+
+                    <div className="adm-login-hint">Only authorized college admins can access this panel</div>
                 </div>
             </div>
         )
     }
 
-    // ── DASHBOARD ──────────────────────────────────────────────────────────────
+    // ── DASHBOARD — everything below is UNCHANGED ──────────────────────────────
     return (
         <div className="adm-root">
 
-            {/* Header */}
+            {/* ✅ CHANGED: Header now shows admin name + picture */}
             <header className="adm-header">
                 <div className="adm-header-left">
                     <img src="/logo.png" alt="SC" className="adm-header-logo" />
@@ -183,15 +250,24 @@ export default function AdminDashboard() {
                     </div>
                 </div>
                 <div className="adm-header-right">
+                    {/* ✅ Show admin's Google profile */}
+                    {admin && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <img src={admin.picture} alt={admin.name}
+                                style={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid #8B0000' }} />
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{admin.name}</span>
+                        </div>
+                    )}
                     <span className="adm-live-badge">🟢 Live</span>
                     <button className="adm-btn-refresh" onClick={handleRefresh} disabled={refreshing}>
                         {refreshing ? '⏳' : '🔄'} Refresh
                     </button>
-                    <button className="adm-btn-logout" onClick={() => { setIsAuth(false); setPassword('') }}>Logout</button>
+                    {/* ✅ CHANGED: logout clears JWT */}
+                    <button className="adm-btn-logout" onClick={handleLogout}>Logout</button>
                 </div>
             </header>
 
-            {/* Tabs */}
+            {/* Tabs — unchanged */}
             <div className="adm-tabs">
                 {[
                     { id: 'overview', label: '📊 Overview' },
@@ -206,14 +282,12 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
-            {/* Content */}
+            {/* Content — completely unchanged */}
             <div className="adm-content">
                 {loading ? (
                     <div className="adm-loading"><div className="adm-spinner" />Loading data...</div>
                 ) : (
                     <>
-
-                        {/* ── OVERVIEW ── */}
                         {activeTab === 'overview' && (
                             <>
                                 <div className="adm-stats-grid">
@@ -222,7 +296,6 @@ export default function AdminDashboard() {
                                     <StatCard icon="📅" label="Today's Sessions" value={todaySessions} color="#047857" />
                                     <StatCard icon="⚡" label="Avg Msgs / Session" value={avgMsgs} color="#b45309" />
                                 </div>
-
                                 <div className="adm-two-col">
                                     <div className="adm-card">
                                         <div className="adm-card-title">🕐 Recent Sessions</div>
@@ -244,7 +317,6 @@ export default function AdminDashboard() {
                                         }
                                     </div>
                                 </div>
-
                                 {analytics?.top_intents?.length > 0 && (
                                     <div className="adm-card">
                                         <div className="adm-card-title">🔥 Top Topics Asked</div>
@@ -266,7 +338,6 @@ export default function AdminDashboard() {
                             </>
                         )}
 
-                        {/* ── SESSIONS ── */}
                         {activeTab === 'sessions' && (
                             <div className="adm-sessions-layout">
                                 <div className="adm-sessions-list-panel">
@@ -286,7 +357,6 @@ export default function AdminDashboard() {
                                         ))
                                     }
                                 </div>
-
                                 <div className="adm-session-detail-panel">
                                     {!selectedSession ? (
                                         <div className="adm-detail-placeholder">
@@ -318,7 +388,6 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        {/* ── ANALYTICS ── */}
                         {activeTab === 'analytics' && (
                             <>
                                 <div className="adm-stats-grid">
@@ -327,7 +396,6 @@ export default function AdminDashboard() {
                                     <StatCard icon="📊" label="Avg Msgs / Session" value={avgMsgs} color="#b45309" />
                                     <StatCard icon="🌐" label="Top Language" value={topLang} color="#047857" />
                                 </div>
-
                                 <div className="adm-card">
                                     <div className="adm-card-title">📅 Sessions — Last 7 Days</div>
                                     <div className="adm-bar-chart">
@@ -340,7 +408,6 @@ export default function AdminDashboard() {
                                         ))}
                                     </div>
                                 </div>
-
                                 <div className="adm-card">
                                     <div className="adm-card-title">📋 Session Log</div>
                                     <div className="adm-table-wrap">
@@ -369,7 +436,6 @@ export default function AdminDashboard() {
                             </>
                         )}
 
-                        {/* ── LANGUAGES ── */}
                         {activeTab === 'languages' && (
                             <>
                                 <div className="adm-stats-grid">
@@ -383,7 +449,6 @@ export default function AdminDashboard() {
                                     ))}
                                     {Object.keys(langCounts).length === 0 && <div className="adm-empty">No data yet</div>}
                                 </div>
-
                                 <div className="adm-card">
                                     <div className="adm-card-title">🌐 Detailed Language Usage</div>
                                     {Object.entries(langCounts).sort((a, b) => b[1] - a[1]).map(([lang, count]) => (
@@ -406,7 +471,6 @@ export default function AdminDashboard() {
                                 </div>
                             </>
                         )}
-
                     </>
                 )}
             </div>

@@ -1,15 +1,17 @@
+import { useState, useEffect } from 'react'
 import ChatWidget from './components/ChatWidget'
 import './styles/home.css'
 import AdminDashboard from './components/AdminDashboard'
 
 export default function App() {
+  // Admin route — protected by Google OAuth inside AdminDashboard
   if (window.location.pathname === '/admin') {
     return <AdminDashboard />
   }
 
+  // Students go straight to chatbot — no login needed
   return (
     <div className="home-page">
-      {/* Header */}
       <header className="home-header">
         <div className="header-inner">
           <div className="header-logo">
@@ -28,7 +30,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-overlay" />
         <div className="hero-content">
@@ -42,35 +43,21 @@ export default function App() {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="stats-section">
         <div className="stats-inner">
-          <div className="stat-card">
-            <div className="stat-number">16.5 LPA</div>
-            <div className="stat-label">Highest Package</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">225+</div>
-            <div className="stat-label">Students Placed (2026)</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">7+</div>
-            <div className="stat-label">Branches Offered</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-number">NAAC A</div>
-            <div className="stat-label">Accreditation Grade</div>
-          </div>
+          <div className="stat-card"><div className="stat-number">16.5 LPA</div><div className="stat-label">Highest Package</div></div>
+          <div className="stat-card"><div className="stat-number">225+</div><div className="stat-label">Students Placed (2026)</div></div>
+          <div className="stat-card"><div className="stat-number">7+</div><div className="stat-label">Branches Offered</div></div>
+          <div className="stat-card"><div className="stat-number">NAAC A</div><div className="stat-label">Accreditation Grade</div></div>
         </div>
       </section>
 
-      {/* OneVoice Info Section */}
       <section className="chatbot-info-section">
         <div className="chatbot-info-inner">
           <div className="chatbot-info-text">
             <div className="section-badge">🤖 AI-Powered Assistant</div>
             <h2>Meet <span>OneVoice</span></h2>
-            <p>Your 24/7 multilingual student support chatbot powered by advanced AI. Get instant answers about exam fees, timetables, results, placements, and college events — in your preferred language.</p>
+            <p>Your 24/7 multilingual student support chatbot powered by advanced AI.</p>
             <div className="feature-list">
               <div className="feature-item">🌐 5 Languages — English, Hindi, Urdu, Telugu, Tamil</div>
               <div className="feature-item">🎤 Voice Input — Speak your questions</div>
@@ -87,48 +74,26 @@ export default function App() {
               <div className="info-card-body">
                 <div className="demo-msg bot">👋 Hi! I'm OneVoice. How can I help you today?</div>
                 <div className="demo-msg user">What is the exam fee for BE B25?</div>
-                <div className="demo-msg bot">The exam fee for BE (B25) I Semester is Rs.4250/- including one-time exam expenses. Pay at stanleyexams.in 📚</div>
-                <div className="demo-msg user">टाइमटेबल कब है?</div>
-                <div className="demo-msg bot">BE III Sem परीक्षाएं 31 दिसंबर से शुरू होती हैं। 📅</div>
+                <div className="demo-msg bot">The exam fee for BE (B25) I Semester is Rs.4250/- 📚</div>
               </div>
-              <div className="info-card-langs">
-                <span>EN</span><span>हि</span><span>اردو</span><span>తె</span><span>த</span>
-              </div>
+              <div className="info-card-langs"><span>EN</span><span>हि</span><span>اردو</span><span>తె</span><span>த</span></div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
       <section className="about-section">
         <div className="about-inner">
           <h2>About Stanley College</h2>
           <div className="about-grid">
-            <div className="about-card">
-              <div className="about-icon">🏛️</div>
-              <h3>Established 2008</h3>
-              <p>Located at Chapel Road, Abids, Hyderabad. Affiliated to Osmania University and approved by AICTE.</p>
-            </div>
-            <div className="about-card">
-              <div className="about-icon">🎓</div>
-              <h3>Programs Offered</h3>
-              <p>B.E, M.E, M.Tech, and MBA programs across CSE, ECE, EEE, IT, AIML, AI&DS, and CME branches.</p>
-            </div>
-            <div className="about-card">
-              <div className="about-icon">🏆</div>
-              <h3>Accreditations</h3>
-              <p>NBA Accredited, NAAC Grade A, UGC Autonomous Institution with world-class facilities.</p>
-            </div>
-            <div className="about-card">
-              <div className="about-icon">💼</div>
-              <h3>Top Recruiters</h3>
-              <p>HSBC, UBS, Deccan AI, Alstom, Infosys, Purview, and Savantis HCL recruit from our campus.</p>
-            </div>
+            <div className="about-card"><div className="about-icon">🏛️</div><h3>Established 2008</h3><p>Located at Chapel Road, Abids, Hyderabad.</p></div>
+            <div className="about-card"><div className="about-icon">🎓</div><h3>Programs Offered</h3><p>B.E, M.E, M.Tech, and MBA programs.</p></div>
+            <div className="about-card"><div className="about-icon">🏆</div><h3>Accreditations</h3><p>NBA Accredited, NAAC Grade A, UGC Autonomous.</p></div>
+            <div className="about-card"><div className="about-icon">💼</div><h3>Top Recruiters</h3><p>HSBC, UBS, Infosys and more recruit from campus.</p></div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="home-footer">
         <div className="footer-inner">
           <div className="footer-left">
@@ -146,6 +111,7 @@ export default function App() {
         <div className="footer-bottom">© 2026 Stanley College · OneVoice AI Chatbot</div>
       </footer>
 
+      {/* Students use chatbot directly — no login needed */}
       <ChatWidget />
     </div>
   )

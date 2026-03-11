@@ -6,6 +6,7 @@ from database.connection import connect_db, close_db
 from routes.chat import router as chat_router
 from routes.analytics import router as analytics_router
 from routes.admin import router as admin_router
+from routes.auth import router as auth_router  # ADD THIS
 import asyncio
 import httpx
 import os
@@ -13,15 +14,13 @@ import os
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_db()
-    # Start keep-alive task
     task = asyncio.create_task(keep_alive())
     yield
     task.cancel()
     await close_db()
 
 async def keep_alive():
-    """Ping self every 10 minutes to prevent Render from sleeping."""
-    await asyncio.sleep(60)  # Wait 1 min after startup
+    await asyncio.sleep(60)
     while True:
         try:
             app_url = os.getenv("RENDER_EXTERNAL_URL", "")
@@ -31,7 +30,7 @@ async def keep_alive():
                     print("✅ Keep-alive ping sent")
         except Exception as e:
             print(f"Keep-alive ping failed: {e}")
-        await asyncio.sleep(600)  # Every 10 minutes
+        await asyncio.sleep(600)
 
 app = FastAPI(title="OneVoice Chatbot API", lifespan=lifespan)
 
@@ -46,6 +45,7 @@ app.add_middleware(
 app.include_router(chat_router, prefix="/api", tags=["Chat"])
 app.include_router(analytics_router, prefix="/api", tags=["Analytics"])
 app.include_router(admin_router, prefix="/api", tags=["Admin"])
+app.include_router(auth_router, tags=["Auth"])  # ADD THIS
 
 @app.get("/")
 async def root():
