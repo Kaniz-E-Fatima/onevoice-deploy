@@ -35,7 +35,9 @@ function StatCard({ icon, label, value, color }) {
 
 function SessionRow({ session, onClick, active }) {
     const lang = session.language || 'english'
-    const msgCount = session.message_count || session.messages?.length || 0
+    const msgCount = typeof session.message_count === 'number'
+        ? session.message_count
+        : (Array.isArray(session.messages) ? session.messages.length : 0)
     return (
         <div className={`adm-session-row ${active ? 'active' : ''}`} onClick={() => onClick(session)}>
             <div className="adm-session-left">
@@ -181,7 +183,9 @@ export default function AdminDashboard() {
     const totalMessages = sessions.reduce((a, s) => a + (s.message_count || s.messages?.length || 0), 0)
     const todaySessions = sessions.filter(s => s.updated_at && new Date(s.updated_at).toDateString() === new Date().toDateString()).length
     const langCounts = sessions.reduce((acc, s) => {
-        const l = s.language || 'english'; acc[l] = (acc[l] || 0) + 1; return acc
+        const l = typeof s.language === 'string' ? s.language : 'english'
+        acc[l] = (acc[l] || 0) + 1
+        return acc
     }, {})
     const topLang = Object.entries(langCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
     const avgMsgs = sessions.length ? Math.round((totalMessages / sessions.length) * 10) / 10 : 0
