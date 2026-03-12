@@ -34,7 +34,7 @@ async def chat(request: ChatRequest):
     session_id = request.session_id or str(uuid.uuid4())
     user_email = get_user_from_token(request.token)   # ADD THIS
 
-    context, intent = get_context(request.message)
+    context, intent = await get_context(request.message)
 
     session = await db.chat_sessions.find_one({"session_id": session_id})
     chat_history = session.get("messages", []) if session else []

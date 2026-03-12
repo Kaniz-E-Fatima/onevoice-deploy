@@ -1,13 +1,13 @@
 from datetime import datetime
 
-def chat_session_doc(session_id: str, language: str = "english"):  # ✅ changed "en" to "english"
+def chat_session_doc(session_id: str, language: str = "english"):
     return {
         "session_id": session_id,
         "language": language,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
         "message_count": 0,
-        "messages": []  # ✅ added messages array inside session
+        "messages": []
     }
 
 def chat_message_doc(role: str, content: str, timestamp=None):
@@ -17,11 +17,13 @@ def chat_message_doc(role: str, content: str, timestamp=None):
         "timestamp": timestamp or datetime.utcnow()
     }
 
-def knowledge_doc(filename: str, content: str, category: str):
+# ✅ NEW: PDF document model for MongoDB storage
+def pdf_doc(filename: str, content: str, file_type: str, size_kb: float):
     return {
         "filename": filename,
-        "category": category,
         "content": content,
+        "file_type": file_type,
+        "size_kb": size_kb,
         "uploaded_at": datetime.utcnow(),
         "active": True
     }
