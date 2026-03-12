@@ -4,20 +4,32 @@ import '../styles/admin.css'
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 const BACKEND_URL = API_URL.replace('/api', '')
 
+// ✅ Safety helper — prevents objects rendering as text
+const safe = (val, fallback = '—') => {
+    if (val === null || val === undefined) return fallback
+    if (typeof val === 'string') return val || fallback
+    if (typeof val === 'number') return String(val)
+    return fallback
+}
+
 function timeAgo(dateStr) {
     if (!dateStr) return '—'
-    const diff = Date.now() - new Date(dateStr).getTime()
-    const m = Math.floor(diff / 60000)
-    if (m < 1) return 'just now'
-    if (m < 60) return `${m}m ago`
-    const h = Math.floor(m / 60)
-    if (h < 24) return `${h}h ago`
-    return `${Math.floor(h / 24)}d ago`
+    try {
+        const diff = Date.now() - new Date(dateStr).getTime()
+        const m = Math.floor(diff / 60000)
+        if (m < 1) return 'just now'
+        if (m < 60) return `${m}m ago`
+        const h = Math.floor(m / 60)
+        if (h < 24) return `${h}h ago`
+        return `${Math.floor(h / 24)}d ago`
+    } catch { return '—' }
 }
 
 function formatDate(dateStr) {
     if (!dateStr) return '—'
-    return new Date(dateStr).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+    try {
+        return new Date(dateStr).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+    } catch { return '—' }
 }
 
 const LANG_FLAGS = { english: '🇬🇧', hindi: '🇮🇳', urdu: '🇵🇰', telugu: '🟡', tamil: '🟠' }
@@ -34,16 +46,15 @@ function StatCard({ icon, label, value, color }) {
 }
 
 function SessionRow({ session, onClick, active }) {
-    const lang = session.language || 'english'
-    const msgCount = typeof session.message_count === 'number'
-        ? session.message_count
-        : (Array.isArray(session.messages) ? session.messages.length : 0)
+    // ✅ Safe language extraction
+    const lang = typeof session.language === 'string' ? session.language : 'english'
+    const msgCount = Array.isArray(session.messages) ? session.messages.length : 0
     return (
         <div className={`adm-session-row ${active ? 'active' : ''}`} onClick={() => onClick(session)}>
             <div className="adm-session-left">
                 <div className="adm-session-avatar">{LANG_FLAGS[lang] || '🌐'}</div>
                 <div>
-                    <div className="adm-session-id">...{session._id?.slice(-10)}</div>
+                    <div className="adm-session-id">...{safe(session._id)?.slice(-10)}</div>
                     <div className="adm-session-meta">{lang} · {msgCount} msgs</div>
                 </div>
             </div>
@@ -54,11 +65,13 @@ function SessionRow({ session, onClick, active }) {
 
 function MsgBubble({ msg }) {
     const isUser = msg.role === 'user'
+    // ✅ Safe content extraction
+    const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
     return (
         <div className={`adm-bubble-wrap ${isUser ? 'user' : 'bot'}`}>
             <div className={`adm-bubble ${isUser ? 'user' : 'bot'}`}>
                 <div className="adm-bubble-role">{isUser ? '👤 Student' : '🤖 OneVoice'}</div>
-                <div>{msg.content}</div>
+                <div>{content}</div>
                 {msg.timestamp && (
                     <div className="adm-bubble-time">
                         {new Date(msg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
@@ -85,11 +98,9 @@ function LangBar({ lang, count, total }) {
 }
 
 export default function AdminDashboard() {
-    // ✅ CHANGED: replaced password state with Google OAuth state
     const [isAuth, setIsAuth] = useState(false)
     const [admin, setAdmin] = useState(null)
     const [authError, setAuthError] = useState(false)
-
     const [analytics, setAnalytics] = useState(null)
     const [sessions, setSessions] = useState([])
     const [loading, setLoading] = useState(false)
@@ -98,24 +109,20 @@ export default function AdminDashboard() {
     const [selectedSession, setSelectedSession] = useState(null)
     const [search, setSearch] = useState('')
 
-    // ✅ CHANGED: use JWT token instead of ADMIN_KEY for headers
     const getHeaders = () => {
         const token = localStorage.getItem('admin_token')
         return { 'X-Admin-Key': 'stanley2025', 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
     }
 
-    // ✅ ADDED: Check for Google OAuth token on page load
     useEffect(() => {
         const params = new URLSearchParams(window.location.search)
         const token = params.get('token')
         const error = params.get('error')
-
         if (error === 'unauthorized') {
             setAuthError(true)
             window.history.replaceState({}, '', '/admin')
             return
         }
-
         if (token) {
             localStorage.setItem('admin_token', token)
             try {
@@ -123,11 +130,8 @@ export default function AdminDashboard() {
                 setAdmin(payload)
                 setIsAuth(true)
                 window.history.replaceState({}, '', '/admin')
-            } catch {
-                setAuthError(true)
-            }
+            } catch { setAuthError(true) }
         } else {
-            // Check saved token
             const saved = localStorage.getItem('admin_token')
             if (saved) {
                 try {
@@ -135,20 +139,13 @@ export default function AdminDashboard() {
                     if (payload.exp * 1000 > Date.now()) {
                         setAdmin(payload)
                         setIsAuth(true)
-                    } else {
-                        localStorage.removeItem('admin_token')
-                    }
-                } catch {
-                    localStorage.removeItem('admin_token')
-                }
+                    } else { localStorage.removeItem('admin_token') }
+                } catch { localStorage.removeItem('admin_token') }
             }
         }
     }, [])
 
-    // ✅ ADDED: Fetch data automatically after login
-    useEffect(() => {
-        if (isAuth) fetchData()
-    }, [isAuth])
+    useEffect(() => { if (isAuth) fetchData() }, [isAuth])
 
     const fetchData = async () => {
         setLoading(true)
@@ -160,45 +157,55 @@ export default function AdminDashboard() {
             if (aRes.ok) setAnalytics(await aRes.json())
             if (sRes.ok) {
                 const data = await sRes.json()
-                setSessions(Array.isArray(data) ? data : (data.sessions || []))
+                // ✅ Always store as clean array
+                const raw = Array.isArray(data) ? data : (data.sessions || [])
+                setSessions(raw)
             }
-        } catch (e) { console.error(e) }
+        } catch (e) { console.error('fetchData error:', e) }
         finally { setLoading(false) }
     }
 
-    const handleRefresh = async () => {
-        setRefreshing(true)
-        await fetchData()
-        setRefreshing(false)
-    }
+    const handleRefresh = async () => { setRefreshing(true); await fetchData(); setRefreshing(false) }
 
-    // ✅ CHANGED: logout now clears JWT token
     const handleLogout = () => {
         localStorage.removeItem('admin_token')
         setIsAuth(false)
         setAdmin(null)
     }
 
-    // Derived data — unchanged
-    const totalMessages = sessions.reduce((a, s) => a + (s.message_count || s.messages?.length || 0), 0)
-    const todaySessions = sessions.filter(s => s.updated_at && new Date(s.updated_at).toDateString() === new Date().toDateString()).length
+    // ✅ Safe derived data
+    const totalMessages = sessions.reduce((a, s) => {
+        return a + (Array.isArray(s.messages) ? s.messages.length : 0)
+    }, 0)
+
+    const todaySessions = sessions.filter(s => {
+        try { return s.updated_at && new Date(s.updated_at).toDateString() === new Date().toDateString() }
+        catch { return false }
+    }).length
+
+    // ✅ Safe language counts — only count string languages
     const langCounts = sessions.reduce((acc, s) => {
-        const l = typeof s.language === 'string' ? s.language : 'english'
+        const l = typeof s.language === 'string' && s.language ? s.language : 'english'
         acc[l] = (acc[l] || 0) + 1
         return acc
     }, {})
+
     const topLang = Object.entries(langCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
     const avgMsgs = sessions.length ? Math.round((totalMessages / sessions.length) * 10) / 10 : 0
 
     const last7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d })
-    const dayCounts = last7.map(d => sessions.filter(s => s.updated_at && new Date(s.updated_at).toDateString() === d.toDateString()).length)
+    const dayCounts = last7.map(d => sessions.filter(s => {
+        try { return s.updated_at && new Date(s.updated_at).toDateString() === d.toDateString() }
+        catch { return false }
+    }).length)
     const maxDay = Math.max(...dayCounts, 1)
 
     const filtered = sessions.filter(s =>
-        !search || s._id?.toLowerCase().includes(search.toLowerCase()) || (s.language || '').includes(search.toLowerCase())
+        !search ||
+        safe(s._id, '').toLowerCase().includes(search.toLowerCase()) ||
+        safe(s.language, '').toLowerCase().includes(search.toLowerCase())
     )
 
-    // ✅ CHANGED: Google OAuth login screen instead of password
     if (!isAuth) {
         return (
             <div className="adm-login-bg">
@@ -206,45 +213,31 @@ export default function AdminDashboard() {
                     <img src="/logo.png" alt="Stanley College" className="adm-login-logo" />
                     <h2 className="adm-login-title">OneVoice Admin</h2>
                     <p className="adm-login-sub">Stanley College · Secure Dashboard</p>
-
                     {authError && (
                         <div style={{
                             background: '#fff0f0', border: '1px solid #ffcccc',
-                            borderRadius: '8px', padding: '10px',
-                            marginBottom: '1rem', color: '#cc0000',
-                            fontSize: '0.85rem', textAlign: 'center'
+                            borderRadius: '8px', padding: '10px', marginBottom: '1rem',
+                            color: '#cc0000', fontSize: '0.85rem', textAlign: 'center'
                         }}>
                             ⛔ Access denied. Only authorized admins can login.
                         </div>
                     )}
-
-                    <button
-                        className="adm-login-btn"
+                    <button className="adm-login-btn"
                         onClick={() => window.location.href = `${BACKEND_URL}/auth/google`}
-                        style={{
-                            display: 'flex', alignItems: 'center',
-                            gap: '12px', justifyContent: 'center'
-                        }}
-                    >
-                        <img
-                            src="https://developers.google.com/identity/images/g-logo.png"
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+                        <img src="https://developers.google.com/identity/images/g-logo.png"
                             alt="Google" width="20"
-                            style={{ background: 'white', borderRadius: '2px', padding: '2px' }}
-                        />
+                            style={{ background: 'white', borderRadius: '2px', padding: '2px' }} />
                         Sign in with Google
                     </button>
-
                     <div className="adm-login-hint">Only authorized college admins can access this panel</div>
                 </div>
             </div>
         )
     }
 
-    // ── DASHBOARD — everything below is UNCHANGED ──────────────────────────────
     return (
         <div className="adm-root">
-
-            {/* ✅ CHANGED: Header now shows admin name + picture */}
             <header className="adm-header">
                 <div className="adm-header-left">
                     <img src="/logo.png" alt="SC" className="adm-header-logo" />
@@ -254,7 +247,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
                 <div className="adm-header-right">
-                    {/* ✅ Show admin's Google profile */}
                     {admin && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <img src={admin.picture} alt={admin.name}
@@ -266,12 +258,10 @@ export default function AdminDashboard() {
                     <button className="adm-btn-refresh" onClick={handleRefresh} disabled={refreshing}>
                         {refreshing ? '⏳' : '🔄'} Refresh
                     </button>
-                    {/* ✅ CHANGED: logout clears JWT */}
                     <button className="adm-btn-logout" onClick={handleLogout}>Logout</button>
                 </div>
             </header>
 
-            {/* Tabs — unchanged */}
             <div className="adm-tabs">
                 {[
                     { id: 'overview', label: '📊 Overview' },
@@ -286,7 +276,6 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
-            {/* Content — completely unchanged */}
             <div className="adm-content">
                 {loading ? (
                     <div className="adm-loading"><div className="adm-spinner" />Loading data...</div>
@@ -304,9 +293,9 @@ export default function AdminDashboard() {
                                     <div className="adm-card">
                                         <div className="adm-card-title">🕐 Recent Sessions</div>
                                         {sessions.length === 0
-                                            ? <div className="adm-empty">No sessions yet. Students haven't chatted!</div>
-                                            : sessions.slice(0, 6).map(s => (
-                                                <SessionRow key={s._id} session={s} active={false}
+                                            ? <div className="adm-empty">No sessions yet!</div>
+                                            : sessions.slice(0, 6).map((s, i) => (
+                                                <SessionRow key={s._id || i} session={s} active={false}
                                                     onClick={() => { setSelectedSession(s); setActiveTab('sessions') }} />
                                             ))
                                         }
@@ -321,47 +310,21 @@ export default function AdminDashboard() {
                                         }
                                     </div>
                                 </div>
-                                {/* top_intents temporarily disabled 
-                                {analytics?.top_intents?.length > 0 && (
-                                    <div className="adm-card">
-                                        <div className="adm-card-title">🔥 Top Topics Asked</div>
-                                        <div className="adm-intent-list">
-                                            {analytics.top_intents
-                                                .filter(item => typeof item._id === 'string')  // ✅ only render strings
-                                                .map((item, i) => (
-                                                    <div key={i} className="adm-intent-item">
-                                                        <div className="adm-intent-rank">#{i + 1}</div>
-                                                        <div className="adm-intent-name">
-                                                            {item._id || 'general'}
-                                                        </div>
-                                                        <div className="adm-intent-bar-wrap">
-                                                            <div className="adm-intent-bar"
-                                                                style={{ width: `${Math.min((item.count / (analytics.top_intents[0]?.count || 1)) * 100, 100)}%` }} />
-                                                        </div>
-                                                        <div className="adm-intent-count">{item.count}</div>
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </div>
-                                )}
-                             */}
                             </>
                         )}
 
                         {activeTab === 'sessions' && (
                             <div className="adm-sessions-layout">
                                 <div className="adm-sessions-list-panel">
-                                    <input
-                                        className="adm-search"
+                                    <input className="adm-search"
                                         placeholder="🔍 Search by ID or language..."
                                         value={search}
-                                        onChange={e => setSearch(e.target.value)}
-                                    />
+                                        onChange={e => setSearch(e.target.value)} />
                                     <div className="adm-session-count-label">{filtered.length} sessions</div>
                                     {filtered.length === 0
                                         ? <div className="adm-empty">No sessions found</div>
-                                        : filtered.map(s => (
-                                            <SessionRow key={s._id} session={s}
+                                        : filtered.map((s, i) => (
+                                            <SessionRow key={s._id || i} session={s}
                                                 active={selectedSession?._id === s._id}
                                                 onClick={setSelectedSession} />
                                         ))
@@ -377,19 +340,19 @@ export default function AdminDashboard() {
                                         <>
                                             <div className="adm-detail-header">
                                                 <div>
-                                                    <div className="adm-detail-id">{selectedSession._id}</div>
+                                                    <div className="adm-detail-id">{safe(selectedSession._id)}</div>
                                                     <div className="adm-detail-meta">
-                                                        {LANG_FLAGS[selectedSession.language] || '🌐'} {selectedSession.language || 'english'} ·{' '}
-                                                        {selectedSession.message_count || selectedSession.messages?.length || 0} messages ·{' '}
+                                                        {LANG_FLAGS[selectedSession.language] || '🌐'} {safe(selectedSession.language, 'english')} ·{' '}
+                                                        {Array.isArray(selectedSession.messages) ? selectedSession.messages.length : 0} messages ·{' '}
                                                         {timeAgo(selectedSession.updated_at)}
                                                     </div>
                                                 </div>
                                                 <button className="adm-close-btn" onClick={() => setSelectedSession(null)}>✕</button>
                                             </div>
                                             <div className="adm-messages-area">
-                                                {selectedSession.messages?.length > 0
+                                                {Array.isArray(selectedSession.messages) && selectedSession.messages.length > 0
                                                     ? selectedSession.messages.map((msg, i) => <MsgBubble key={i} msg={msg} />)
-                                                    : <div className="adm-empty">No messages stored for this session yet.</div>
+                                                    : <div className="adm-empty">No messages stored yet.</div>
                                                 }
                                             </div>
                                         </>
@@ -428,12 +391,12 @@ export default function AdminDashboard() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {sessions.slice(0, 25).map(s => (
-                                                    <tr key={s._id} className="adm-table-row"
+                                                {sessions.slice(0, 25).map((s, i) => (
+                                                    <tr key={s._id || i} className="adm-table-row"
                                                         onClick={() => { setSelectedSession(s); setActiveTab('sessions') }}>
-                                                        <td className="adm-table-id">...{s._id?.slice(-12)}</td>
-                                                        <td style={{ textTransform: 'capitalize' }}>{s.language || 'english'}</td>
-                                                        <td>{s.message_count || s.messages?.length || 0}</td>
+                                                        <td className="adm-table-id">...{safe(s._id, '').slice(-12)}</td>
+                                                        <td style={{ textTransform: 'capitalize' }}>{safe(s.language, 'english')}</td>
+                                                        <td>{Array.isArray(s.messages) ? s.messages.length : 0}</td>
                                                         <td className="adm-muted">{formatDate(s.created_at)}</td>
                                                         <td className="adm-muted">{timeAgo(s.updated_at)}</td>
                                                     </tr>
@@ -454,8 +417,7 @@ export default function AdminDashboard() {
                                             icon={LANG_FLAGS[lang] || '🌐'}
                                             label={lang.charAt(0).toUpperCase() + lang.slice(1)}
                                             value={`${count} sessions`}
-                                            color={LANG_COLORS[lang] || '#8B0000'}
-                                        />
+                                            color={LANG_COLORS[lang] || '#8B0000'} />
                                     ))}
                                     {Object.keys(langCounts).length === 0 && <div className="adm-empty">No data yet</div>}
                                 </div>
@@ -476,7 +438,7 @@ export default function AdminDashboard() {
                                         </div>
                                     ))}
                                     {Object.keys(langCounts).length === 0 && (
-                                        <div className="adm-empty">No language data yet. Students need to chat first!</div>
+                                        <div className="adm-empty">No language data yet!</div>
                                     )}
                                 </div>
                             </>
