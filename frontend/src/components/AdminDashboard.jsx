@@ -317,6 +317,7 @@ export default function AdminDashboard() {
                                         }
                                     </div>
                                 </div>
+                                {/* top_intents temporarily disabled 
                                 {analytics?.top_intents?.length > 0 && (
                                     <div className="adm-card">
                                         <div className="adm-card-title">🔥 Top Topics Asked</div>
@@ -339,6 +340,7 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
                                 )}
+                             */}
                             </>
                         )}
 
