@@ -321,17 +321,21 @@ export default function AdminDashboard() {
                                     <div className="adm-card">
                                         <div className="adm-card-title">🔥 Top Topics Asked</div>
                                         <div className="adm-intent-list">
-                                            {analytics.top_intents.map((item, i) => (
-                                                <div key={i} className="adm-intent-item">
-                                                    <div className="adm-intent-rank">#{i + 1}</div>
-                                                    <div className="adm-intent-name">{typeof item._id === 'string' ? item._id : (item.intent || 'general')}</div>
-                                                    <div className="adm-intent-bar-wrap">
-                                                        <div className="adm-intent-bar"
-                                                            style={{ width: `${Math.min((item.count / (analytics.top_intents[0]?.count || 1)) * 100, 100)}%` }} />
+                                            {analytics.top_intents
+                                                .filter(item => typeof item._id === 'string')  // ✅ only render strings
+                                                .map((item, i) => (
+                                                    <div key={i} className="adm-intent-item">
+                                                        <div className="adm-intent-rank">#{i + 1}</div>
+                                                        <div className="adm-intent-name">
+                                                            {item._id || 'general'}
+                                                        </div>
+                                                        <div className="adm-intent-bar-wrap">
+                                                            <div className="adm-intent-bar"
+                                                                style={{ width: `${Math.min((item.count / (analytics.top_intents[0]?.count || 1)) * 100, 100)}%` }} />
+                                                        </div>
+                                                        <div className="adm-intent-count">{item.count}</div>
                                                     </div>
-                                                    <div className="adm-intent-count">{typeof item.count === 'number' ? item.count : 0}</div>
-                                                </div>
-                                            ))}
+                                                ))}
                                         </div>
                                     </div>
                                 )}
