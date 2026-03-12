@@ -1,37 +1,36 @@
 from datetime import datetime
 
-def chat_session_doc(session_id: str, language: str = "en"):
+def chat_session_doc(session_id: str, language: str = "english"):  # ✅ changed "en" to "english"
     return {
-        "session_id": session_id, 
-        "language": language, 
-        "created_at": datetime.utcnow(), 
-        "updated_at": datetime.utcnow(), 
-        "message_count": 0
+        "session_id": session_id,
+        "language": language,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+        "message_count": 0,
+        "messages": []  # ✅ added messages array inside session
     }
 
-def chat_message_doc(session_id: str, role: str, content: str, intent: str = "general"):
+def chat_message_doc(role: str, content: str, timestamp=None):
     return {
-        "session_id": session_id, 
-        "role": role, 
-        "content": content, 
-        "intent": intent, 
-        "timestamp": datetime.utcnow()
+        "role": role,
+        "content": content,
+        "timestamp": timestamp or datetime.utcnow()
     }
 
 def knowledge_doc(filename: str, content: str, category: str):
     return {
-        "filename": filename, 
-        "category": category, 
-        "content": content, 
-        "uploaded_at": datetime.utcnow(), 
+        "filename": filename,
+        "category": category,
+        "content": content,
+        "uploaded_at": datetime.utcnow(),
         "active": True
     }
 
 def analytics_doc(session_id: str, query: str, intent: str, response_time_ms: int):
     return {
-        "session_id": session_id, 
-        "query": query, 
-        "intent": intent, 
-        "response_time_ms": response_time_ms, 
+        "session_id": session_id,
+        "query": query,
+        "intent": intent,
+        "response_time_ms": response_time_ms,
         "timestamp": datetime.utcnow()
     }

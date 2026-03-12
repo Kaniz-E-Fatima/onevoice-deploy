@@ -97,6 +97,163 @@ function LangBar({ lang, count, total }) {
     )
 }
 
+function PDFManager({ headers, API_URL }) {
+    const [files, setFiles] = useState([])
+    const [uploading, setUploading] = useState(false)
+    const [message, setMessage] = useState('')
+    const [loading, setLoading] = useState(true)
+
+    const fetchFiles = async () => {
+        setLoading(true)
+        try {
+            const res = await fetch(`${API_URL}/admin/pdfs`, { headers })
+            if (res.ok) {
+                const data = await res.json()
+                setFiles(data.files || [])
+            }
+        } catch (e) { console.error(e) }
+        finally { setLoading(false) }
+    }
+
+    useEffect(() => { fetchFiles() }, [])
+
+    const handleUpload = async (e) => {
+        const file = e.target.files[0]
+        if (!file) return
+        setUploading(true)
+        setMessage('')
+        const formData = new FormData()
+        formData.append('file', file)
+        try {
+            const res = await fetch(`${API_URL}/admin/pdfs/upload`, {
+                method: 'POST',
+                headers: { 'X-Admin-Key': headers['X-Admin-Key'] },
+                body: formData
+            })
+            const data = await res.json()
+            setMessage(res.ok ? `✅ ${data.message}` : `❌ ${data.detail}`)
+            if (res.ok) fetchFiles()
+        } catch (e) {
+            setMessage('❌ Upload failed. Try again.')
+        }
+        setUploading(false)
+    }
+
+    const handleDelete = async (filename) => {
+        if (!window.confirm(`Delete ${filename}?`)) return
+        try {
+            const res = await fetch(`${API_URL}/admin/pdfs/${encodeURIComponent(filename)}`, {
+                method: 'DELETE',
+                headers
+            })
+            const data = await res.json()
+            setMessage(res.ok ? `✅ ${data.message}` : `❌ ${data.detail}`)
+            if (res.ok) fetchFiles()
+        } catch (e) {
+            setMessage('❌ Delete failed.')
+        }
+    }
+
+    return (
+        <div>
+            {/* Upload Section */}
+            <div className="adm-card" style={{ marginBottom: '1.5rem' }}>
+                <div className="adm-card-title">📤 Upload New PDF or TXT</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    <label style={{
+                        background: '#8B0000', color: 'white',
+                        padding: '10px 24px', borderRadius: '8px',
+                        cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem'
+                    }}>
+                        {uploading ? '⏳ Uploading...' : '📁 Choose File'}
+                        <input type="file" accept=".pdf,.txt"
+                            onChange={handleUpload}
+                            style={{ display: 'none' }}
+                            disabled={uploading} />
+                    </label>
+                    <span style={{ color: '#666', fontSize: '0.85rem' }}>
+                        Supported: PDF, TXT — Max 10MB
+                    </span>
+                </div>
+                {message && (
+                    <div style={{
+                        marginTop: '1rem', padding: '10px 16px',
+                        background: message.startsWith('✅') ? '#f0fff4' : '#fff0f0',
+                        border: `1px solid ${message.startsWith('✅') ? '#86efac' : '#fca5a5'}`,
+                        borderRadius: '8px', fontSize: '0.9rem',
+                        color: message.startsWith('✅') ? '#166534' : '#991b1b'
+                    }}>
+                        {message}
+                    </div>
+                )}
+            </div>
+
+            {/* Files List */}
+            <div className="adm-card">
+                <div className="adm-card-title">
+                    📂 Knowledge Base Files
+                    <button onClick={fetchFiles}
+                        style={{
+                            marginLeft: '1rem', background: 'none', border: '1px solid #ddd',
+                            borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem'
+                        }}>
+                        🔄 Refresh
+                    </button>
+                </div>
+                {loading ? (
+                    <div className="adm-loading"><div className="adm-spinner" />Loading files...</div>
+                ) : files.length === 0 ? (
+                    <div className="adm-empty">No files found in knowledge base</div>
+                ) : (
+                    <div style={{ marginTop: '1rem' }}>
+                        {files.map((file, i) => (
+                            <div key={i} style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                padding: '12px 16px', borderRadius: '8px', marginBottom: '8px',
+                                background: '#f9f9f9', border: '1px solid #eee'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <span style={{ fontSize: '1.5rem' }}>
+                                        {file.type === 'pdf' ? '📄' : '📝'}
+                                    </span>
+                                    <div>
+                                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{file.name}</div>
+                                        <div style={{ color: '#888', fontSize: '0.8rem' }}>
+                                            {file.size} KB · {file.type.toUpperCase()}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    {/* Replace = upload new version */}
+                                    <label style={{
+                                        background: '#1d4ed8', color: 'white',
+                                        padding: '6px 14px', borderRadius: '6px',
+                                        cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600
+                                    }}>
+                                        🔄 Replace
+                                        <input type="file" accept=".pdf,.txt"
+                                            onChange={handleUpload}
+                                            style={{ display: 'none' }} />
+                                    </label>
+                                    <button onClick={() => handleDelete(file.name)}
+                                        style={{
+                                            background: '#dc2626', color: 'white',
+                                            border: 'none', padding: '6px 14px',
+                                            borderRadius: '6px', cursor: 'pointer',
+                                            fontSize: '0.8rem', fontWeight: 600
+                                        }}>
+                                        🗑️ Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
 export default function AdminDashboard() {
     const [isAuth, setIsAuth] = useState(false)
     const [admin, setAdmin] = useState(null)
@@ -268,6 +425,7 @@ export default function AdminDashboard() {
                     { id: 'sessions', label: '💬 Sessions' },
                     { id: 'analytics', label: '📈 Analytics' },
                     { id: 'languages', label: '🌐 Languages' },
+                    { id: 'pdfs', label: '📁 PDFs' },
                 ].map(t => (
                     <button key={t.id}
                         className={`adm-tab ${activeTab === t.id ? 'active' : ''}`}
@@ -443,6 +601,12 @@ export default function AdminDashboard() {
                                 </div>
                             </>
                         )}
+
+                        {/* ✅ PDF Management Tab */}
+                        {activeTab === 'pdfs' && (
+                            <PDFManager headers={getHeaders()} API_URL={API_URL} />
+                        )}
+
                     </>
                 )}
             </div>
