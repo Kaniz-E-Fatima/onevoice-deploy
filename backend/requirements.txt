@@ -10,4 +10,4 @@ httpx
 google-auth
 google-auth-oauthlib
 python-jose[cryptography]
-httpx
+python-multipart
