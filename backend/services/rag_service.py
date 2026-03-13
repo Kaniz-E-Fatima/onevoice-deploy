@@ -3,14 +3,6 @@ from database.connection import get_db
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "../data")
 
-INTENT_MAP = {
-    "exam_fees": ["exam", "fee", "fees"],
-    "timetables": ["timetable", "schedule", "time table"],
-    "results": ["result", "results", "marks", "memo"],
-    "placements": ["placement", "job", "company", "package", "lpa"],
-    "events": ["event", "workshop", "bootcamp", "conference", "holiday"]
-}
-
 KEYWORD_INTENT = {
     "exam fee": "exam_fees", "fee": "exam_fees", "payment": "exam_fees",
     "fine": "exam_fees", "last date": "exam_fees", "deadline": "exam_fees",
@@ -25,6 +17,14 @@ KEYWORD_INTENT = {
     "workshop": "events", "bootcamp": "events", "holiday": "events"
 }
 
+INTENT_FILENAMES = {
+    "exam_fees": "exam_fees.txt",
+    "timetables": "timetables.txt",
+    "results": "results.txt",
+    "placements": "placements.txt",
+    "events": "events.txt"
+}
+
 def detect_intent(query: str) -> str:
     query_lower = query.lower()
     for keyword, intent in KEYWORD_INTENT.items():
@@ -33,58 +33,63 @@ def detect_intent(query: str) -> str:
     return "general"
 
 async def get_context_from_db(intent: str) -> str:
-    """Read knowledge from MongoDB first"""
     try:
         db = get_db()
         if db is None:
             return ""
 
         if intent == "general":
-            # Get all documents
-            cursor = db.knowledge_base.find({"active": True})
-            docs = await cursor.to_list(length=20)
-        else:
-            # Search by filename keywords matching intent
-            keywords = INTENT_MAP.get(intent, [intent])
-            query_filter = {
-                "active": True,
-                "$or": [
-                    {"filename": {"$regex": kw, "$options": "i"}}
-                    for kw in keywords
-                ]
-            }
-            cursor = db.knowledge_base.find(query_filter)
-            docs = await cursor.to_list(length=5)
-
-            # Fallback: get all if nothing found
+            # ✅ Get all txt files first (most useful), then PDFs
+            docs = await db.knowledge_base.find(
+                {"file_type": "txt"}
+            ).to_list(length=10)
             if not docs:
-                cursor = db.knowledge_base.find({"active": True})
-                docs = await cursor.to_list(length=20)
+                docs = await db.knowledge_base.find({}).to_list(length=20)
+        else:
+            # ✅ First try exact filename match
+            target_file = INTENT_FILENAMES.get(intent)
+            if target_file:
+                docs = await db.knowledge_base.find(
+                    {"filename": target_file}
+                ).to_list(length=1)
+            else:
+                docs = []
 
-        return "\n\n".join([d.get("content", "") for d in docs if d.get("content")])
+            # ✅ Fallback: search by filename keywords
+            if not docs:
+                keywords = intent.replace("_", " ").split()
+                query_filter = {
+                    "$or": [
+                        {"filename": {"$regex": kw, "$options": "i"}}
+                        for kw in keywords
+                    ]
+                }
+                docs = await db.knowledge_base.find(query_filter).to_list(length=5)
+
+            # ✅ Final fallback: get all txt files
+            if not docs:
+                docs = await db.knowledge_base.find(
+                    {"file_type": "txt"}
+                ).to_list(length=10)
+
+        contents = [d.get("content", "") for d in docs if d.get("content", "").strip()]
+        return "\n\n".join(contents)
+
     except Exception as e:
         print(f"DB context error: {e}")
         return ""
 
 def get_context_from_files(intent: str) -> str:
-    """Fallback: read from local files"""
     try:
         if not os.path.exists(DATA_DIR):
             return ""
         all_text = ""
         for fname in os.listdir(DATA_DIR):
-            if fname.endswith((".txt", ".pdf")):
+            if fname.endswith(".txt"):
                 fpath = os.path.join(DATA_DIR, fname)
                 try:
-                    if fname.endswith(".pdf"):
-                        import pymupdf
-                        doc = pymupdf.open(fpath)
-                        for page in doc:
-                            all_text += page.get_text() + "\n"
-                        doc.close()
-                    else:
-                        with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
-                            all_text += f.read() + "\n\n"
+                    with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
+                        all_text += f.read() + "\n\n"
                 except Exception:
                     continue
         return all_text
@@ -94,13 +99,8 @@ def get_context_from_files(intent: str) -> str:
 
 async def get_context(query: str):
     intent = detect_intent(query)
-
-    # ✅ Try MongoDB first
     context = await get_context_from_db(intent)
-
-    # ✅ Fallback to local files if MongoDB is empty
     if not context.strip():
         print("MongoDB empty, falling back to local files")
         context = get_context_from_files(intent)
-
     return context, intent
