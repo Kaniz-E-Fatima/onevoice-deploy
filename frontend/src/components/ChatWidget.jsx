@@ -197,9 +197,12 @@ export default function ChatWidget() {
     setSessionId(null)
   }
 
+  const [followUpSuggestions, setFollowUpSuggestions] = useState([])
+
   const handleSend = async (text) => {
     if (!text.trim()) return
     setShowSuggestions(false)
+    setFollowUpSuggestions([])
     setMessages(prev => [...prev, { role: 'user', content: text }])
     setLoading(true)
     try {
@@ -209,6 +212,10 @@ export default function ChatWidget() {
       typeMessage(data.reply, (finalText) => {
         setMessages(prev => [...prev, { role: 'assistant', content: finalText, showFeedback: true }])
         if (voiceOutput) setTimeout(() => speakText(finalText, language), 150)
+        // ✅ Show follow-up suggestions from backend
+        if (data.suggestions && data.suggestions.length > 0) {
+          setFollowUpSuggestions(data.suggestions)
+        }
       })
     } catch (err) {
       setLoading(false)
@@ -325,6 +332,17 @@ export default function ChatWidget() {
                 <div className="suggestions">
                   {SUGGESTIONS.map(s => (
                     <button key={s} className="suggestion-btn" onClick={() => handleSuggestion(s)}>{s}</button>
+                  ))}
+                </div>
+              )}
+              {/* ✅ Follow-up suggestions after bot reply */}
+              {!showSuggestions && followUpSuggestions.length > 0 && (
+                <div className="suggestions">
+                  {followUpSuggestions.map((s, i) => (
+                    <button key={i} className="suggestion-btn"
+                      onClick={() => { setFollowUpSuggestions([]); handleSend(s) }}>
+                      {s}
+                    </button>
                   ))}
                 </div>
               )}

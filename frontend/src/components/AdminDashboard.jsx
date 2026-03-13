@@ -4,7 +4,6 @@ import '../styles/admin.css'
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 const BACKEND_URL = API_URL.replace('/api', '')
 
-// ✅ Safety helper — prevents objects rendering as text
 const safe = (val, fallback = '—') => {
     if (val === null || val === undefined) return fallback
     if (typeof val === 'string') return val || fallback
@@ -46,7 +45,6 @@ function StatCard({ icon, label, value, color }) {
 }
 
 function SessionRow({ session, onClick, active }) {
-    // ✅ Safe language extraction
     const lang = typeof session.language === 'string' ? session.language : 'english'
     const msgCount = Array.isArray(session.messages) ? session.messages.length : 0
     return (
@@ -65,7 +63,6 @@ function SessionRow({ session, onClick, active }) {
 
 function MsgBubble({ msg }) {
     const isUser = msg.role === 'user'
-    // ✅ Safe content extraction
     const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
     return (
         <div className={`adm-bubble-wrap ${isUser ? 'user' : 'bot'}`}>
@@ -256,6 +253,7 @@ function PDFManager({ adminKey, API_URL }) {
         </div>
     )
 }
+
 export default function AdminDashboard() {
     const [isAuth, setIsAuth] = useState(false)
     const [admin, setAdmin] = useState(null)
@@ -316,7 +314,6 @@ export default function AdminDashboard() {
             if (aRes.ok) setAnalytics(await aRes.json())
             if (sRes.ok) {
                 const data = await sRes.json()
-                // ✅ Always store as clean array
                 const raw = Array.isArray(data) ? data : (data.sessions || [])
                 setSessions(raw)
             }
@@ -332,7 +329,32 @@ export default function AdminDashboard() {
         setAdmin(null)
     }
 
-    // ✅ Safe derived data
+    // ✅ Export CSV
+    const handleExportCSV = () => {
+        fetch(`${API_URL}/admin/export/csv`, { headers: getHeaders() })
+            .then(r => r.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = 'onevoice_sessions.csv'
+                link.click()
+                URL.revokeObjectURL(url)
+            })
+    }
+
+    // ✅ Delete session
+    const handleDeleteSession = async (sessionId) => {
+        if (!window.confirm('Delete this session?')) return
+        const res = await fetch(`${API_URL}/admin/sessions/${sessionId}`, {
+            method: 'DELETE', headers: getHeaders()
+        })
+        if (res.ok) {
+            setSelectedSession(null)
+            fetchData()
+        }
+    }
+
     const totalMessages = sessions.reduce((a, s) => {
         return a + (Array.isArray(s.messages) ? s.messages.length : 0)
     }, 0)
@@ -342,7 +364,6 @@ export default function AdminDashboard() {
         catch { return false }
     }).length
 
-    // ✅ Safe language counts — only count string languages
     const langCounts = sessions.reduce((acc, s) => {
         const l = typeof s.language === 'string' && s.language ? s.language : 'english'
         acc[l] = (acc[l] || 0) + 1
@@ -484,9 +505,22 @@ export default function AdminDashboard() {
                                     {filtered.length === 0
                                         ? <div className="adm-empty">No sessions found</div>
                                         : filtered.map((s, i) => (
-                                            <SessionRow key={s._id || i} session={s}
-                                                active={selectedSession?._id === s._id}
-                                                onClick={setSelectedSession} />
+                                            // ✅ Delete button added
+                                            <div key={s._id || i} style={{ position: 'relative' }}>
+                                                <SessionRow session={s}
+                                                    active={selectedSession?._id === s._id}
+                                                    onClick={setSelectedSession} />
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteSession(s._id) }}
+                                                    style={{
+                                                        position: 'absolute', right: '8px', top: '50%',
+                                                        transform: 'translateY(-50%)', background: '#dc2626',
+                                                        color: 'white', border: 'none', borderRadius: '4px',
+                                                        padding: '2px 8px', fontSize: '0.7rem', cursor: 'pointer'
+                                                    }}>
+                                                    🗑️
+                                                </button>
+                                            </div>
                                         ))
                                     }
                                 </div>
@@ -542,7 +576,15 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                                 <div className="adm-card">
-                                    <div className="adm-card-title">📋 Session Log</div>
+                                    {/* ✅ Export CSV button added */}
+                                    <div className="adm-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <span>📋 Session Log</span>
+                                        <button onClick={handleExportCSV} style={{
+                                            background: '#047857', color: 'white', border: 'none',
+                                            padding: '6px 16px', borderRadius: '6px',
+                                            fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer'
+                                        }}>📥 Export CSV</button>
+                                    </div>
                                     <div className="adm-table-wrap">
                                         <table className="adm-table">
                                             <thead>
@@ -604,11 +646,9 @@ export default function AdminDashboard() {
                             </>
                         )}
 
-                        {/* ✅ PDF Management Tab */}
                         {activeTab === 'pdfs' && (
                             <PDFManager adminKey="stanley2025" API_URL={API_URL} />
                         )}
-
                     </>
                 )}
             </div>
