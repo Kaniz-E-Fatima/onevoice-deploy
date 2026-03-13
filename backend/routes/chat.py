@@ -4,15 +4,13 @@ from typing import Optional
 from services.gemini_service import get_gemini_response
 from services.rag_service import get_context
 from database.connection import get_db
-from database.models import chat_session_doc, chat_message_doc
 import uuid
 from datetime import datetime
-from jose import jwt, JWTError          # ADD THIS
-from config import JWT_SECRET            # ADD THIS
+from jose import jwt, JWTError
+from config import JWT_SECRET
 
 router = APIRouter()
 
-# ADD this helper function
 def get_user_from_token(token: str = None):
     if not token:
         return None
@@ -26,13 +24,23 @@ class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
     language: Optional[str] = "english"
-    token: Optional[str] = None          # ADD THIS
+    token: Optional[str] = None
+
+SUGGESTIONS = {
+    "exam_fees": ["How do I pay exam fees?", "What is the last date for fee payment?", "What if I miss the deadline?"],
+    "timetables": ["When are BE III sem exams?", "What time do exams start?", "Where can I find timetables?"],
+    "results": ["How do I check my results?", "How to apply for revaluation?", "What is the revaluation fee?"],
+    "placements": ["Which companies visited campus?", "What is the highest package?", "How many students got placed?"],
+    "events": ["What events are coming up?", "How to register for conference?", "Any workshops available?"],
+    "general": ["What are the exam fees?", "How do I check results?", "Tell me about placements"]
+}
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
     db = get_db()
     session_id = request.session_id or str(uuid.uuid4())
-    user_email = get_user_from_token(request.token)   # ADD THIS
+    user_email = get_user_from_token(request.token)
+    now = datetime.utcnow()
 
     context, intent = await get_context(request.message)
 
@@ -46,27 +54,44 @@ async def chat(request: ChatRequest):
         language=request.language
     )
 
-    now = datetime.utcnow()
-    user_msg = chat_message_doc("user", request.message, now)
-    bot_msg = chat_message_doc("assistant", reply, now)
+    user_msg = {"role": "user", "content": request.message, "timestamp": now}
+    bot_msg = {"role": "assistant", "content": reply, "timestamp": now}
 
     if session:
         await db.chat_sessions.update_one(
             {"session_id": session_id},
-            {"$push": {"messages": {"$each": [user_msg, bot_msg]}},
-             "$set": {"updated_at": now, "user_email": user_email}}   # ADD user_email
+            {
+                "$push": {"messages": {"$each": [user_msg, bot_msg]}},
+                "$set": {
+                    "updated_at": now,
+                    "user_email": user_email,
+                    "language": request.language
+                },
+                "$inc": {"message_count": 2}
+            }
         )
     else:
-        doc = chat_session_doc(session_id, [user_msg, bot_msg])
-        doc["user_email"] = user_email    # ADD THIS
-        await db.chat_sessions.insert_one(doc)
+        await db.chat_sessions.insert_one({
+            "session_id": session_id,
+            "language": request.language or "english",
+            "created_at": now,
+            "updated_at": now,
+            "message_count": 2,
+            "user_email": user_email,
+            "messages": [user_msg, bot_msg]
+        })
 
     await db.analytics.insert_one({
         "session_id": session_id,
         "intent": intent,
         "language": request.language,
         "timestamp": now,
-        "user_email": user_email          # ADD THIS
+        "user_email": user_email
     })
 
-    return {"reply": reply, "session_id": session_id, "intent": intent}
+    return {
+        "reply": reply,
+        "session_id": session_id,
+        "intent": intent,
+        "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"])
+    }

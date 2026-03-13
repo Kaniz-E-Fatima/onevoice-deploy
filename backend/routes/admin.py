@@ -4,6 +4,9 @@ from database.connection import get_db
 from database.models import pdf_doc
 import pymupdf
 import os
+import csv
+import io
+from fastapi.responses import StreamingResponse
 
 router = APIRouter()
 DATA_DIR = os.path.join(os.path.dirname(__file__), "../data")
@@ -98,3 +101,42 @@ async def delete_pdf(filename: str, x_admin_key: str = Header(None)):
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="File not found")
     return {"message": f"{filename} deleted successfully"}
+
+
+# ✅ Delete a session
+@router.delete("/admin/sessions/{session_id}")
+async def delete_session(session_id: str, x_admin_key: str = Header(None)):
+    verify_admin(x_admin_key)
+    db = get_db()
+    import bson
+    result = await db.chat_sessions.delete_one({"_id": bson.ObjectId(session_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"message": "Session deleted successfully"}
+
+
+# ✅ Export all sessions as CSV
+@router.get("/admin/export/csv")
+async def export_csv(x_admin_key: str = Header(None)):
+    verify_admin(x_admin_key)
+    db = get_db()
+    sessions = await db.chat_sessions.find().sort("updated_at", -1).to_list(length=1000)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Session ID", "Language", "Messages", "Created At", "Last Active", "User Email"])
+    for s in sessions:
+        messages = s.get("messages", [])
+        writer.writerow([
+            str(s.get("session_id", "")),
+            str(s.get("language", "english")),
+            len(messages),
+            str(s.get("created_at", "")),
+            str(s.get("updated_at", "")),
+            str(s.get("user_email", ""))
+        ])
+    output.seek(0)
+    return StreamingResponse(
+        io.BytesIO(output.getvalue().encode()),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=onevoice_sessions.csv"}
+    )

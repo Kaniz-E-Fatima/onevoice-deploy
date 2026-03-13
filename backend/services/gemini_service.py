@@ -1,6 +1,23 @@
 from groq import Groq
 from config import GROQ_API_KEY
 
+def detect_language(text: str) -> str:
+    telugu_chars = set('అఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరలవశషసహళఱఴ')
+    hindi_chars = set('अआइईउऊएऐओऔकखगघचछजझटठडढणतथदधनपफबभमयरलवशषसहक्षत्रज्ञ')
+    urdu_chars = set('ابتثجحخدذرزسشصضطظعغفقکلمنوہیے')
+    tamil_chars = set('அஆஇஈஉஊஎஏஐஒஓஔகஙசஞடணதநபமயரலவழளறனஜஷஸஹ')
+
+    text_chars = set(text)
+    if text_chars & telugu_chars:
+        return "telugu"
+    if text_chars & hindi_chars:
+        return "hindi"
+    if text_chars & urdu_chars:
+        return "urdu"
+    if text_chars & tamil_chars:
+        return "tamil"
+    return "english"
+
 client = Groq(api_key=GROQ_API_KEY)
 
 LANGUAGE_INSTRUCTIONS = {
@@ -25,6 +42,11 @@ async def get_gemini_response(query: str, context: str, chat_history: list = Non
     if chat_history is None:
         chat_history = []
     try:
+        # ✅ Auto detect language from query
+        detected = detect_language(query)
+        if detected != "english":
+            language = detected
+
         lang_instruction = LANGUAGE_INSTRUCTIONS.get(language, LANGUAGE_INSTRUCTIONS["english"])
 
         history_messages = []
