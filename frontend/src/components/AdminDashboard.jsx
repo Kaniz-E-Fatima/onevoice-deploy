@@ -97,22 +97,31 @@ function LangBar({ lang, count, total }) {
     )
 }
 
-function PDFManager({ headers, API_URL }) {
+function PDFManager({ adminKey, API_URL }) {
     const [files, setFiles] = useState([])
     const [uploading, setUploading] = useState(false)
     const [message, setMessage] = useState('')
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+
+    const pdfHeaders = { 'X-Admin-Key': adminKey }
 
     const fetchFiles = async () => {
         setLoading(true)
+        setError('')
         try {
-            const res = await fetch(`${API_URL}/admin/pdfs`, { headers })
+            const res = await fetch(`${API_URL}/admin/pdfs`, { headers: pdfHeaders })
             if (res.ok) {
                 const data = await res.json()
                 setFiles(data.files || [])
+            } else {
+                setError(`Failed to load files (${res.status})`)
             }
-        } catch (e) { console.error(e) }
-        finally { setLoading(false) }
+        } catch (e) {
+            setError('Cannot connect to backend')
+        } finally {
+            setLoading(false)
+        }
     }
 
     useEffect(() => { fetchFiles() }, [])
@@ -127,7 +136,7 @@ function PDFManager({ headers, API_URL }) {
         try {
             const res = await fetch(`${API_URL}/admin/pdfs/upload`, {
                 method: 'POST',
-                headers: { 'X-Admin-Key': headers['X-Admin-Key'] },
+                headers: pdfHeaders,
                 body: formData
             })
             const data = await res.json()
@@ -137,6 +146,7 @@ function PDFManager({ headers, API_URL }) {
             setMessage('❌ Upload failed. Try again.')
         }
         setUploading(false)
+        e.target.value = ''
     }
 
     const handleDelete = async (filename) => {
@@ -144,7 +154,7 @@ function PDFManager({ headers, API_URL }) {
         try {
             const res = await fetch(`${API_URL}/admin/pdfs/${encodeURIComponent(filename)}`, {
                 method: 'DELETE',
-                headers
+                headers: pdfHeaders
             })
             const data = await res.json()
             setMessage(res.ok ? `✅ ${data.message}` : `❌ ${data.detail}`)
@@ -156,14 +166,15 @@ function PDFManager({ headers, API_URL }) {
 
     return (
         <div>
-            {/* Upload Section */}
             <div className="adm-card" style={{ marginBottom: '1.5rem' }}>
                 <div className="adm-card-title">📤 Upload New PDF or TXT</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                     <label style={{
                         background: '#8B0000', color: 'white',
                         padding: '10px 24px', borderRadius: '8px',
-                        cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem'
+                        cursor: uploading ? 'not-allowed' : 'pointer',
+                        fontWeight: 600, fontSize: '0.9rem',
+                        opacity: uploading ? 0.7 : 1
                     }}>
                         {uploading ? '⏳ Uploading...' : '📁 Choose File'}
                         <input type="file" accept=".pdf,.txt"
@@ -171,9 +182,7 @@ function PDFManager({ headers, API_URL }) {
                             style={{ display: 'none' }}
                             disabled={uploading} />
                     </label>
-                    <span style={{ color: '#666', fontSize: '0.85rem' }}>
-                        Supported: PDF, TXT — Max 10MB
-                    </span>
+                    <span style={{ color: '#666', fontSize: '0.85rem' }}>Supported: PDF, TXT</span>
                 </div>
                 {message && (
                     <div style={{
@@ -188,22 +197,23 @@ function PDFManager({ headers, API_URL }) {
                 )}
             </div>
 
-            {/* Files List */}
             <div className="adm-card">
                 <div className="adm-card-title">
                     📂 Knowledge Base Files
-                    <button onClick={fetchFiles}
-                        style={{
-                            marginLeft: '1rem', background: 'none', border: '1px solid #ddd',
-                            borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem'
-                        }}>
-                        🔄 Refresh
-                    </button>
+                    <button onClick={fetchFiles} style={{
+                        marginLeft: '1rem', background: 'none', border: '1px solid #ddd',
+                        borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem'
+                    }}>🔄 Refresh</button>
                 </div>
+                {error && (
+                    <div style={{ color: '#dc2626', padding: '1rem', fontSize: '0.9rem' }}>
+                        ❌ {error} — <button onClick={fetchFiles} style={{ color: '#1d4ed8', background: 'none', border: 'none', cursor: 'pointer' }}>Try again</button>
+                    </div>
+                )}
                 {loading ? (
                     <div className="adm-loading"><div className="adm-spinner" />Loading files...</div>
-                ) : files.length === 0 ? (
-                    <div className="adm-empty">No files found in knowledge base</div>
+                ) : files.length === 0 && !error ? (
+                    <div className="adm-empty">No files uploaded yet. Upload your first PDF above!</div>
                 ) : (
                     <div style={{ marginTop: '1rem' }}>
                         {files.map((file, i) => (
@@ -213,18 +223,15 @@ function PDFManager({ headers, API_URL }) {
                                 background: '#f9f9f9', border: '1px solid #eee'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <span style={{ fontSize: '1.5rem' }}>
-                                        {file.type === 'pdf' ? '📄' : '📝'}
-                                    </span>
+                                    <span style={{ fontSize: '1.5rem' }}>{file.file_type === 'pdf' ? '📄' : '📝'}</span>
                                     <div>
-                                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{file.name}</div>
+                                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{file.filename}</div>
                                         <div style={{ color: '#888', fontSize: '0.8rem' }}>
-                                            {file.size} KB · {file.type.toUpperCase()}
+                                            {file.size_kb} KB · {(file.file_type || 'txt').toUpperCase()}
                                         </div>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '8px' }}>
-                                    {/* Replace = upload new version */}
                                     <label style={{
                                         background: '#1d4ed8', color: 'white',
                                         padding: '6px 14px', borderRadius: '6px',
@@ -235,15 +242,11 @@ function PDFManager({ headers, API_URL }) {
                                             onChange={handleUpload}
                                             style={{ display: 'none' }} />
                                     </label>
-                                    <button onClick={() => handleDelete(file.name)}
-                                        style={{
-                                            background: '#dc2626', color: 'white',
-                                            border: 'none', padding: '6px 14px',
-                                            borderRadius: '6px', cursor: 'pointer',
-                                            fontSize: '0.8rem', fontWeight: 600
-                                        }}>
-                                        🗑️ Delete
-                                    </button>
+                                    <button onClick={() => handleDelete(file.filename)} style={{
+                                        background: '#dc2626', color: 'white', border: 'none',
+                                        padding: '6px 14px', borderRadius: '6px',
+                                        cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600
+                                    }}>🗑️ Delete</button>
                                 </div>
                             </div>
                         ))}
@@ -253,7 +256,6 @@ function PDFManager({ headers, API_URL }) {
         </div>
     )
 }
-
 export default function AdminDashboard() {
     const [isAuth, setIsAuth] = useState(false)
     const [admin, setAdmin] = useState(null)
@@ -604,7 +606,7 @@ export default function AdminDashboard() {
 
                         {/* ✅ PDF Management Tab */}
                         {activeTab === 'pdfs' && (
-                            <PDFManager headers={getHeaders()} API_URL={API_URL} />
+                            <PDFManager adminKey="stanley2025" API_URL={API_URL} />
                         )}
 
                     </>
