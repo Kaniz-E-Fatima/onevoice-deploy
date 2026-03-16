@@ -96,10 +96,10 @@ async def chat(request: ChatRequest):
         "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"])
     }
 
-    class FeedbackRequest(BaseModel):
+class FeedbackRequest(BaseModel):
     session_id: str
     message_index: int
-    feedback: str  # "up" or "down"
+    feedback: str
 
 @router.post("/chat/feedback")
 async def save_feedback(request: FeedbackRequest):
