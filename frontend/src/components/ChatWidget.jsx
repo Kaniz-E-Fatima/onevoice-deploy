@@ -125,7 +125,7 @@ export default function ChatWidget() {
   const [isTyping, setIsTyping] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const wakeTimerRef = useRef(null)
-
+  const [followUpSuggestions, setFollowUpSuggestions] = useState([])
   // ── Wake up backend when widget opens ────────────────────────────────────
   useEffect(() => {
     if (!isOpen) return
@@ -204,8 +204,6 @@ export default function ChatWidget() {
     stopSpeech()
     setSessionId(null)
   }
-
-  const [followUpSuggestions, setFollowUpSuggestions] = useState([])
 
   const handleSend = async (text) => {
     if (!text.trim()) return
