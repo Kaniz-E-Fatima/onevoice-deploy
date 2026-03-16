@@ -10,6 +10,29 @@ from routes.auth import router as auth_router  # ADD THIS
 import asyncio
 import httpx
 import os
+from collections import defaultdict
+from datetime import datetime, timedelta
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+# Simple in-memory rate limiter
+request_counts = defaultdict(list)
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    if request.url.path == "/api/chat":
+        ip = request.client.host
+        now = datetime.utcnow()
+        minute_ago = now - timedelta(minutes=1)
+        # Clean old requests
+        request_counts[ip] = [t for t in request_counts[ip] if t > minute_ago]
+        if len(request_counts[ip]) >= 20:  # 20 messages per minute
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Too many requests. Please wait a moment."}
+            )
+        request_counts[ip].append(now)
+    return await call_next(request)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

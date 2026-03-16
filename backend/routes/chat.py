@@ -95,3 +95,24 @@ async def chat(request: ChatRequest):
         "intent": intent,
         "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"])
     }
+
+    class FeedbackRequest(BaseModel):
+    session_id: str
+    message_index: int
+    feedback: str  # "up" or "down"
+
+@router.post("/chat/feedback")
+async def save_feedback(request: FeedbackRequest):
+    db = get_db()
+    session = await db.chat_sessions.find_one({"session_id": request.session_id})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    messages = session.get("messages", [])
+    if request.message_index < len(messages):
+        messages[request.message_index]["feedback"] = request.feedback
+        await db.chat_sessions.update_one(
+            {"session_id": request.session_id},
+            {"$set": {"messages": messages}}
+        )
+    return {"message": "Feedback saved"}

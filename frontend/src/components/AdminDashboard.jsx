@@ -3,6 +3,7 @@ import '../styles/admin.css'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 const BACKEND_URL = API_URL.replace('/api', '')
+const [feedback, setFeedback] = useState(null)
 
 const safe = (val, fallback = '—') => {
     if (val === null || val === undefined) return fallback
@@ -307,9 +308,10 @@ export default function AdminDashboard() {
     const fetchData = async () => {
         setLoading(true)
         try {
-            const [aRes, sRes] = await Promise.all([
+            const [aRes, sRes, fRes] = await Promise.all([
                 fetch(`${API_URL}/analytics/summary`, { headers: getHeaders() }),
-                fetch(`${API_URL}/admin/sessions`, { headers: getHeaders() })
+                fetch(`${API_URL}/admin/sessions`, { headers: getHeaders() }),
+                fetch(`${API_URL}/admin/feedback`, { headers: getHeaders() })
             ])
             if (aRes.ok) setAnalytics(await aRes.json())
             if (sRes.ok) {
@@ -317,6 +319,7 @@ export default function AdminDashboard() {
                 const raw = Array.isArray(data) ? data : (data.sessions || [])
                 setSessions(raw)
             }
+            if (fRes.ok) setFeedback(await fRes.json())
         } catch (e) { console.error('fetchData error:', e) }
         finally { setLoading(false) }
     }
@@ -449,6 +452,7 @@ export default function AdminDashboard() {
                     { id: 'analytics', label: '📈 Analytics' },
                     { id: 'languages', label: '🌐 Languages' },
                     { id: 'pdfs', label: '📁 PDFs' },
+                    { id: 'feedback', label: '⭐ Feedback' },
                 ].map(t => (
                     <button key={t.id}
                         className={`adm-tab ${activeTab === t.id ? 'active' : ''}`}
@@ -641,6 +645,59 @@ export default function AdminDashboard() {
                                     ))}
                                     {Object.keys(langCounts).length === 0 && (
                                         <div className="adm-empty">No language data yet!</div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'feedback' && (
+                            <>
+                                <div className="adm-stats-grid">
+                                    <StatCard icon="📊" label="Total Feedback" value={feedback?.total_feedback ?? 0} color="#8B0000" />
+                                    <StatCard icon="👍" label="Thumbs Up" value={feedback?.thumbs_up ?? 0} color="#047857" />
+                                    <StatCard icon="👎" label="Thumbs Down" value={feedback?.thumbs_down ?? 0} color="#dc2626" />
+                                    <StatCard icon="⭐" label="Satisfaction Rate" value={`${feedback?.satisfaction_rate ?? 0}%`} color="#b45309" />
+                                </div>
+                                <div className="adm-card">
+                                    <div className="adm-card-title">📈 Student Satisfaction</div>
+                                    {!feedback || feedback.total_feedback === 0 ? (
+                                        <div className="adm-empty">No feedback collected yet. Feedback appears after students rate responses.</div>
+                                    ) : (
+                                        <div style={{ padding: '1rem' }}>
+                                            <div style={{ marginBottom: '1.5rem' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                    <span style={{ fontWeight: 600 }}>👍 Positive</span>
+                                                    <span>{feedback.thumbs_up} responses</span>
+                                                </div>
+                                                <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '12px' }}>
+                                                    <div style={{
+                                                        width: `${feedback.satisfaction_rate}%`,
+                                                        background: '#047857', height: '12px',
+                                                        borderRadius: '999px', transition: 'width 0.5s'
+                                                    }} />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                    <span style={{ fontWeight: 600 }}>👎 Negative</span>
+                                                    <span>{feedback.thumbs_down} responses</span>
+                                                </div>
+                                                <div style={{ background: '#e5e7eb', borderRadius: '999px', height: '12px' }}>
+                                                    <div style={{
+                                                        width: `${100 - feedback.satisfaction_rate}%`,
+                                                        background: '#dc2626', height: '12px',
+                                                        borderRadius: '999px', transition: 'width 0.5s'
+                                                    }} />
+                                                </div>
+                                            </div>
+                                            <div style={{
+                                                marginTop: '1.5rem', padding: '1rem', background: '#f9fafb',
+                                                borderRadius: '8px', textAlign: 'center', fontSize: '1.5rem', fontWeight: 700,
+                                                color: feedback.satisfaction_rate >= 70 ? '#047857' : '#dc2626'
+                                            }}>
+                                                {feedback.satisfaction_rate >= 70 ? '😊' : '😟'} {feedback.satisfaction_rate}% Satisfaction Rate
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </>

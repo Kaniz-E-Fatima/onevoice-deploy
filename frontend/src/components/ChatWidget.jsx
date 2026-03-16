@@ -3,6 +3,7 @@ import { sendMessage } from '../services/api'
 import ChatMessages from './ChatMessages'
 import ChatInput from './ChatInput'
 import '../styles/widget.css'
+import { sendFeedback } from '../services/api'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
@@ -22,12 +23,19 @@ const SUGGESTIONS = [
   'Events 🎉',
 ]
 
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 const WELCOME_MESSAGES = {
-  english: "👋 Hi! I'm OneVoice, your Stanley College assistant. Ask me about exam fees, timetables, results, placements, or events!",
-  hindi: "👋 नमस्ते! मैं OneVoice हूँ, आपका Stanley College सहायक। परीक्षा शुल्क, टाइमटेबल, परिणाम, या प्लेसमेंट के बारे में पूछें!",
-  urdu: "👋 السلام علیکم! میں OneVoice ہوں، آپ کا Stanley College اسسٹنٹ۔ امتحانی فیس، ٹائم ٹیبل، نتائج یا پلیسمنٹ کے بارے میں پوچھیں!",
-  telugu: "👋 నమస్కారం! నేను OneVoice, మీ Stanley College సహాయకుడిని. పరీక్ష రుసుములు, టైమ్‌టేబుల్, ఫలితాలు లేదా ప్లేస్‌మెంట్ గురించి అడగండి!",
-  tamil: "👋 வணக்கம்! நான் OneVoice, உங்கள் Stanley College உதவியாளர். தேர்வு கட்டணம், நேர அட்டவணை, முடிவுகள் அல்லது வேலைவாய்ப்பு பற்றி கேளுங்கள்!",
+  english: `👋 ${getGreeting()}! I'm OneVoice, your Stanley College assistant. Ask me about exam fees, timetables, results, placements, or events!`,
+  hindi: `👋 ${getGreeting()}! मैं OneVoice हूँ, आपका Stanley College सहायक। परीक्षा शुल्क, टाइमटेबल, परिणाम, या प्लेसमेंट के बारे में पूछें!`,
+  urdu: `👋 ${getGreeting()}! میں OneVoice ہوں، آپ کا Stanley College اسسٹنٹ۔ امتحانی فیس، ٹائم ٹیبل، نتائج یا پلیسمنٹ کے بارے میں پوچھیں!`,
+  telugu: `👋 ${getGreeting()}! నేను OneVoice, మీ Stanley College సహాయకుడిని. పరీక్ష రుసుములు, టైమ్‌టేబుల్, ఫలితాలు లేదా ప్లేస్‌మెంట్ గురించి అడగండి!`,
+  tamil: `👋 ${getGreeting()}! நான் OneVoice, உங்கள் Stanley College உதவியாளர். தேர்வு கட்டணம், நேர அட்டவணை, முடிவுகள் அல்லது வேலைவாய்ப்பு பற்றி கேளுங்கள்!`,
 }
 
 const STORAGE_KEY = 'onevoice_chat_history'
@@ -228,10 +236,16 @@ export default function ChatWidget() {
 
   const handleSuggestion = (suggestion) => handleSend(suggestion.replace(/[💰📅📊🏢🎉]/g, '').trim())
 
-  const handleFeedback = (index, type) => {
+  const handleFeedback = async (index, type) => {
     setMessages(prev => prev.map((msg, i) =>
       i === index ? { ...msg, feedback: type, showFeedback: false } : msg
     ))
+    // ✅ Save to backend
+    if (sessionId) {
+      try {
+        await sendFeedback(sessionId, index, type)
+      } catch (e) { console.error('Feedback error:', e) }
+    }
   }
 
   const clearHistory = () => {

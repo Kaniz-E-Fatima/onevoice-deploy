@@ -140,3 +140,31 @@ async def export_csv(x_admin_key: str = Header(None)):
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=onevoice_sessions.csv"}
     )
+
+@router.get("/admin/feedback")
+async def get_feedback(x_admin_key: str = Header(None)):
+    verify_admin(x_admin_key)
+    db = get_db()
+    sessions = await db.chat_sessions.find({}).to_list(length=1000)
+    
+    total_feedback = 0
+    thumbs_up = 0
+    thumbs_down = 0
+    
+    for s in sessions:
+        for msg in s.get("messages", []):
+            if isinstance(msg, dict) and "feedback" in msg:
+                total_feedback += 1
+                if msg["feedback"] == "up":
+                    thumbs_up += 1
+                else:
+                    thumbs_down += 1
+    
+    satisfaction = round((thumbs_up / total_feedback * 100)) if total_feedback > 0 else 0
+    
+    return {
+        "total_feedback": total_feedback,
+        "thumbs_up": thumbs_up,
+        "thumbs_down": thumbs_down,
+        "satisfaction_rate": satisfaction
+    }
