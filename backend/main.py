@@ -1,38 +1,21 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from config import ALLOWED_ORIGINS
 from database.connection import connect_db, close_db
 from routes.chat import router as chat_router
 from routes.analytics import router as analytics_router
 from routes.admin import router as admin_router
-from routes.auth import router as auth_router  # ADD THIS
+from routes.auth import router as auth_router
 import asyncio
 import httpx
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
-from fastapi import Request
-from fastapi.responses import JSONResponse
 
-# Simple in-memory rate limiter
+# ✅ Rate limiter storage
 request_counts = defaultdict(list)
-
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    if request.url.path == "/api/chat":
-        ip = request.client.host
-        now = datetime.utcnow()
-        minute_ago = now - timedelta(minutes=1)
-        # Clean old requests
-        request_counts[ip] = [t for t in request_counts[ip] if t > minute_ago]
-        if len(request_counts[ip]) >= 20:  # 20 messages per minute
-            return JSONResponse(
-                status_code=429,
-                content={"detail": "Too many requests. Please wait a moment."}
-            )
-        request_counts[ip].append(now)
-    return await call_next(request)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,7 +38,24 @@ async def keep_alive():
             print(f"Keep-alive ping failed: {e}")
         await asyncio.sleep(600)
 
+# ✅ app must be defined BEFORE middleware
 app = FastAPI(title="OneVoice Chatbot API", lifespan=lifespan)
+
+# ✅ Rate limiting middleware AFTER app is defined
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    if request.url.path == "/api/chat":
+        ip = request.client.host
+        now = datetime.utcnow()
+        minute_ago = now - timedelta(minutes=1)
+        request_counts[ip] = [t for t in request_counts[ip] if t > minute_ago]
+        if len(request_counts[ip]) >= 20:
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Too many requests. Please wait a moment."}
+            )
+        request_counts[ip].append(now)
+    return await call_next(request)
 
 app.add_middleware(
     CORSMiddleware,
@@ -68,7 +68,7 @@ app.add_middleware(
 app.include_router(chat_router, prefix="/api", tags=["Chat"])
 app.include_router(analytics_router, prefix="/api", tags=["Analytics"])
 app.include_router(admin_router, prefix="/api", tags=["Admin"])
-app.include_router(auth_router, tags=["Auth"])  # ADD THIS
+app.include_router(auth_router, tags=["Auth"])
 
 @app.get("/")
 async def root():
