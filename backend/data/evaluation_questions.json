@@ -1,0 +1,215 @@
+{
+    "test_cases": [
+        {
+            "id": 1,
+            "language": "english",
+            "category": "exam_fees",
+            "question": "What is the exam fee for B25 first semester?",
+            "expected_keywords": [
+                "4250",
+                "B25",
+                "January 2026",
+                "stanleyexams"
+            ]
+        },
+        {
+            "id": 2,
+            "language": "english",
+            "category": "exam_fees",
+            "question": "What is the last date to pay exam fee without fine?",
+            "expected_keywords": [
+                "12.12.2025",
+                "December",
+                "fine"
+            ]
+        },
+        {
+            "id": 3,
+            "language": "english",
+            "category": "exam_fees",
+            "question": "How do I pay exam fees online?",
+            "expected_keywords": [
+                "stanleyexams.in",
+                "login",
+                "roll number"
+            ]
+        },
+        {
+            "id": 4,
+            "language": "english",
+            "category": "placements",
+            "question": "Which company offered the highest package?",
+            "expected_keywords": [
+                "HSBC",
+                "16.5",
+                "LPA"
+            ]
+        },
+        {
+            "id": 5,
+            "language": "english",
+            "category": "placements",
+            "question": "How many students were placed in Infosys?",
+            "expected_keywords": [
+                "23",
+                "Infosys",
+                "4"
+            ]
+        },
+        {
+            "id": 6,
+            "language": "english",
+            "category": "results",
+            "question": "How do I check my exam results?",
+            "expected_keywords": [
+                "stanleyexams.in",
+                "roll number",
+                "results"
+            ]
+        },
+        {
+            "id": 7,
+            "language": "english",
+            "category": "results",
+            "question": "What is the revaluation fee?",
+            "expected_keywords": [
+                "800",
+                "revaluation",
+                "paper"
+            ]
+        },
+        {
+            "id": 8,
+            "language": "english",
+            "category": "timetables",
+            "question": "When are MBA first semester exams in February 2026?",
+            "expected_keywords": [
+                "17.02.26",
+                "MBA",
+                "February"
+            ]
+        },
+        {
+            "id": 9,
+            "language": "english",
+            "category": "events",
+            "question": "Tell me about the ICATDM conference",
+            "expected_keywords": [
+                "ICATDM",
+                "2026",
+                "ECE",
+                "disaster"
+            ]
+        },
+        {
+            "id": 10,
+            "language": "english",
+            "category": "general",
+            "question": "What is the website for Stanley College?",
+            "expected_keywords": [
+                "stanley.edu.in"
+            ]
+        },
+        {
+            "id": 11,
+            "language": "hindi",
+            "category": "exam_fees",
+            "question": "परीक्षा शुल्क कितना है?",
+            "expected_keywords": [
+                "stanleyexams",
+                "fee",
+                "शुल्क"
+            ]
+        },
+        {
+            "id": 12,
+            "language": "hindi",
+            "category": "placements",
+            "question": "सबसे ज्यादा पैकेज किस कंपनी ने दिया?",
+            "expected_keywords": [
+                "HSBC",
+                "16.5"
+            ]
+        },
+        {
+            "id": 13,
+            "language": "telugu",
+            "category": "exam_fees",
+            "question": "పరీక్ష రుసుము ఎంత?",
+            "expected_keywords": [
+                "stanleyexams",
+                "రుసుము",
+                "fee"
+            ]
+        },
+        {
+            "id": 14,
+            "language": "telugu",
+            "category": "results",
+            "question": "ఫలితాలు ఎలా చెక్ చేయాలి?",
+            "expected_keywords": [
+                "stanleyexams.in"
+            ]
+        },
+        {
+            "id": 15,
+            "language": "hinglish",
+            "category": "exam_fees",
+            "question": "mera exam fee kya hai aur kab tak pay karna hai?",
+            "expected_keywords": [
+                "stanleyexams",
+                "fee",
+                "date"
+            ]
+        },
+        {
+            "id": 16,
+            "language": "hinglish",
+            "category": "placements",
+            "question": "konsi company ne sabse zyada package diya?",
+            "expected_keywords": [
+                "HSBC",
+                "16.5"
+            ]
+        },
+        {
+            "id": 17,
+            "language": "telugish",
+            "category": "exam_fees",
+            "question": "naa exam fee enti? ela pay cheyali?",
+            "expected_keywords": [
+                "stanleyexams",
+                "fee"
+            ]
+        },
+        {
+            "id": 18,
+            "language": "telugish",
+            "category": "results",
+            "question": "results ela chekku cheyali?",
+            "expected_keywords": [
+                "stanleyexams.in"
+            ]
+        },
+        {
+            "id": 19,
+            "language": "urdu",
+            "category": "exam_fees",
+            "question": "امتحانی فیس کتنی ہے؟",
+            "expected_keywords": [
+                "stanleyexams",
+                "fee"
+            ]
+        },
+        {
+            "id": 20,
+            "language": "tamil",
+            "category": "exam_fees",
+            "question": "தேர்வு கட்டணம் எவ்வளவு?",
+            "expected_keywords": [
+                "stanleyexams",
+                "fee"
+            ]
+        }
+    ]
+}
