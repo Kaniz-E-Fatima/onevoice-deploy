@@ -3,7 +3,6 @@ import '../styles/admin.css'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 const BACKEND_URL = API_URL.replace('/api', '')
-const [feedback, setFeedback] = useState(null)
 
 const safe = (val, fallback = '—') => {
     if (val === null || val === undefined) return fallback
@@ -194,7 +193,6 @@ function PDFManager({ adminKey, API_URL }) {
                     </div>
                 )}
             </div>
-
             <div className="adm-card">
                 <div className="adm-card-title">
                     📂 Knowledge Base Files
@@ -256,6 +254,7 @@ function PDFManager({ adminKey, API_URL }) {
 }
 
 export default function AdminDashboard() {
+    // ✅ ALL useState hooks at the top
     const [isAuth, setIsAuth] = useState(false)
     const [admin, setAdmin] = useState(null)
     const [authError, setAuthError] = useState(false)
@@ -266,6 +265,7 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState('overview')
     const [selectedSession, setSelectedSession] = useState(null)
     const [search, setSearch] = useState('')
+    const [feedback, setFeedback] = useState(null)  // ✅ MOVED HERE
 
     const getHeaders = () => {
         const token = localStorage.getItem('admin_token')
@@ -332,7 +332,6 @@ export default function AdminDashboard() {
         setAdmin(null)
     }
 
-    // ✅ Export CSV
     const handleExportCSV = () => {
         fetch(`${API_URL}/admin/export/csv`, { headers: getHeaders() })
             .then(r => r.blob())
@@ -346,7 +345,6 @@ export default function AdminDashboard() {
             })
     }
 
-    // ✅ Delete session
     const handleDeleteSession = async (sessionId) => {
         if (!window.confirm('Delete this session?')) return
         const res = await fetch(`${API_URL}/admin/sessions/${sessionId}`, {
@@ -509,7 +507,6 @@ export default function AdminDashboard() {
                                     {filtered.length === 0
                                         ? <div className="adm-empty">No sessions found</div>
                                         : filtered.map((s, i) => (
-                                            // ✅ Delete button added
                                             <div key={s._id || i} style={{ position: 'relative' }}>
                                                 <SessionRow session={s}
                                                     active={selectedSession?._id === s._id}
@@ -580,7 +577,6 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                                 <div className="adm-card">
-                                    {/* ✅ Export CSV button added */}
                                     <div className="adm-card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                         <span>📋 Session Log</span>
                                         <button onClick={handleExportCSV} style={{
