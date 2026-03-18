@@ -31,7 +31,13 @@ function formatDate(dateStr) {
     } catch { return '—' }
 }
 
-const LANG_FLAGS = { english: '🇬🇧', hindi: '🇮🇳', urdu: '🇵🇰', telugu: '🟡', tamil: '🟠' }
+const LANG_FLAGS = {
+    english: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#1d4ed8', verticalAlign: 'middle' }} />,
+    hindi: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#b45309', verticalAlign: 'middle' }} />,
+    urdu: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#047857', verticalAlign: 'middle' }} />,
+    telugu: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#7c3aed', verticalAlign: 'middle' }} />,
+    tamil: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#be123c', verticalAlign: 'middle' }} />
+}
 const LANG_COLORS = { english: '#1d4ed8', hindi: '#b45309', urdu: '#047857', telugu: '#7c3aed', tamil: '#be123c' }
 
 function StatCard({ icon, label, value, color }) {

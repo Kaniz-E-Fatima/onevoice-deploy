@@ -7,9 +7,14 @@ from config import (
     GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
     GOOGLE_CALLBACK_URL, JWT_SECRET, FRONTEND_URL, ADMIN_EMAIL
 )
-from database.connection import get_db
 
 router = APIRouter()
+
+# ✅ Multiple admin emails
+ADMIN_EMAILS = [
+    ADMIN_EMAIL,
+    "sofiasam144@gmail.com"
+]
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -41,7 +46,6 @@ async def google_login():
 @router.get("/auth/google/callback")
 async def google_callback(code: str):
     async with httpx.AsyncClient() as client:
-        # Exchange code for token
         token_res = await client.post(GOOGLE_TOKEN_URL, data={
             "code": code,
             "client_id": GOOGLE_CLIENT_ID,
@@ -55,15 +59,14 @@ async def google_callback(code: str):
         if not access_token:
             raise HTTPException(status_code=400, detail="Failed to get access token")
 
-        # Get user info from Google
         user_res = await client.get(
             GOOGLE_USERINFO_URL,
             headers={"Authorization": f"Bearer {access_token}"}
         )
         google_user = user_res.json()
 
-    # ✅ ONLY allow your specific Gmail
-    if google_user["email"] != ADMIN_EMAIL:
+    # ✅ Check against list of allowed admins
+    if google_user["email"] not in ADMIN_EMAILS:
         return RedirectResponse(f"{FRONTEND_URL}/admin?error=unauthorized")
 
     user_data = {
@@ -73,10 +76,8 @@ async def google_callback(code: str):
         "picture": google_user.get("picture", ""),
     }
 
-    # Redirect to admin with token
     token = create_jwt(user_data)
     return RedirectResponse(f"{FRONTEND_URL}/admin?token={token}")
-
 
 @router.get("/auth/me")
 async def get_me(token: str):

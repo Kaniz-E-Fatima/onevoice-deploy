@@ -339,6 +339,7 @@ export default function ChatWidget() {
                 onFeedback={handleFeedback}
                 typingText={typingText}
                 isTyping={isTyping}
+                language={language}
               />
               {showSuggestions && (
                 <div className="suggestions">

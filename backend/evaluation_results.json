@@ -1,0 +1,368 @@
+{
+  "summary": {
+    "total": 20,
+    "correct": 19,
+    "accuracy": 95.0,
+    "avg_latency": 18.25
+  },
+  "by_language": {
+    "english": {
+      "total": 10,
+      "correct": 9
+    },
+    "hindi": {
+      "total": 2,
+      "correct": 2
+    },
+    "telugu": {
+      "total": 2,
+      "correct": 2
+    },
+    "hinglish": {
+      "total": 2,
+      "correct": 2
+    },
+    "telugish": {
+      "total": 2,
+      "correct": 2
+    },
+    "urdu": {
+      "total": 1,
+      "correct": 1
+    },
+    "tamil": {
+      "total": 1,
+      "correct": 1
+    }
+  },
+  "by_category": {
+    "exam_fees": {
+      "total": 9,
+      "correct": 8
+    },
+    "placements": {
+      "total": 4,
+      "correct": 4
+    },
+    "results": {
+      "total": 4,
+      "correct": 4
+    },
+    "timetables": {
+      "total": 1,
+      "correct": 1
+    },
+    "events": {
+      "total": 1,
+      "correct": 1
+    },
+    "general": {
+      "total": 1,
+      "correct": 1
+    }
+  },
+  "details": [
+    {
+      "id": 1,
+      "language": "english",
+      "category": "exam_fees",
+      "question": "What is the exam fee for B25 first semester?",
+      "status": "\u2705 PASS",
+      "accuracy": 67,
+      "latency": 1.3,
+      "keywords_found": [
+        "B25",
+        "stanleyexams"
+      ],
+      "keywords_missing": [
+        "4250"
+      ],
+      "reply_preview": "The exam fee for B25 (MBA) first semester is Rs. 5250/-. You can pay the fee through the website www"
+    },
+    {
+      "id": 2,
+      "language": "english",
+      "category": "exam_fees",
+      "question": "What is the last date to pay exam fee without fine?",
+      "status": "\u274c FAIL",
+      "accuracy": 0,
+      "latency": 0.94,
+      "keywords_found": [],
+      "keywords_missing": [
+        "12.12.2025",
+        "December"
+      ],
+      "reply_preview": "The last date to pay the exam fee without fine varies depending on the semester and batch. For examp"
+    },
+    {
+      "id": 3,
+      "language": "english",
+      "category": "exam_fees",
+      "question": "How do I pay exam fees online?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 2.07,
+      "keywords_found": [
+        "stanleyexams.in",
+        "roll number"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "To pay your exam fees online, you can follow these steps:\n\n1. Visit the Stanley College exam portal "
+    },
+    {
+      "id": 4,
+      "language": "english",
+      "category": "placements",
+      "question": "Which company offered the highest package?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.57,
+      "keywords_found": [
+        "HSBC",
+        "16.5"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "The company that offered the highest package is HSBC, with a package of 16.5 LPA."
+    },
+    {
+      "id": 5,
+      "language": "english",
+      "category": "placements",
+      "question": "How many students were placed in Infosys?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.93,
+      "keywords_found": [
+        "23",
+        "Infosys"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "23 students were placed in Infosys with a package of 4.00 LPA."
+    },
+    {
+      "id": 6,
+      "language": "english",
+      "category": "results",
+      "question": "How do I check my exam results?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.82,
+      "keywords_found": [
+        "stanleyexams.in"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "To check your exam results, you can visit our exam portal at www.stanleyexams.in. Simply log in with"
+    },
+    {
+      "id": 7,
+      "language": "english",
+      "category": "results",
+      "question": "What is the revaluation fee?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 19.69,
+      "keywords_found": [
+        "800",
+        "revaluation"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "The revaluation fee is Rs.800/- per paper. You can check more details about the revaluation procedur"
+    },
+    {
+      "id": 8,
+      "language": "english",
+      "category": "timetables",
+      "question": "When are MBA first semester exams in February 2026?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.77,
+      "keywords_found": [
+        "MBA",
+        "February"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "MBA I Sem (B25) Regular February 2026 exams are scheduled from 17.02.26 to 02.03.26, with the follow"
+    },
+    {
+      "id": 9,
+      "language": "english",
+      "category": "events",
+      "question": "Tell me about the ICATDM conference",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 21.99,
+      "keywords_found": [
+        "ICATDM",
+        "2026"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "The ICATDM conference is the International Conference on Advanced Technologies for Disaster Manageme"
+    },
+    {
+      "id": 10,
+      "language": "english",
+      "category": "general",
+      "question": "What is the website for Stanley College?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.95,
+      "keywords_found": [
+        "stanley.edu.in"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "The website for Stanley College of Engineering and Technology for Women is www.stanley.edu.in. For e"
+    },
+    {
+      "id": 11,
+      "language": "hindi",
+      "category": "exam_fees",
+      "question": "\u092a\u0930\u0940\u0915\u094d\u0937\u093e \u0936\u0941\u0932\u094d\u0915 \u0915\u093f\u0924\u0928\u093e \u0939\u0948?",
+      "status": "\u2705 PASS",
+      "accuracy": 50,
+      "latency": 21.18,
+      "keywords_found": [
+        "stanleyexams"
+      ],
+      "keywords_missing": [
+        "fee"
+      ],
+      "reply_preview": "\u0906\u092a\u0915\u093e \u092a\u0930\u0940\u0915\u094d\u0937\u093e \u0936\u0941\u0932\u094d\u0915 \u0915\u094d\u092f\u093e \u0939\u0948, \u092f\u0939 \u091c\u093e\u0928\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0906\u092a\u0915\u094b \u0905\u092a\u0928\u0947 \u0938\u0947\u092e\u0947\u0938\u094d\u091f\u0930 \u0914\u0930 \u092c\u094d\u0930\u093e\u0902\u091a \u0915\u0947 \u092c\u093e\u0930\u0947 \u092e\u0947\u0902 \u091c\u093e\u0928\u0915\u093e\u0930\u0940 \u0926\u0947\u0928\u0940 \u0939\u094b"
+    },
+    {
+      "id": 12,
+      "language": "hindi",
+      "category": "placements",
+      "question": "\u0938\u092c\u0938\u0947 \u091c\u094d\u092f\u093e\u0926\u093e \u092a\u0948\u0915\u0947\u091c \u0915\u093f\u0938 \u0915\u0902\u092a\u0928\u0940 \u0928\u0947 \u0926\u093f\u092f\u093e?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 21.67,
+      "keywords_found": [
+        "HSBC",
+        "16.5"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "\u0938\u092c\u0938\u0947 \u091c\u094d\u092f\u093e\u0926\u093e \u092a\u0948\u0915\u0947\u091c HSBC \u0915\u0902\u092a\u0928\u0940 \u0928\u0947 \u0926\u093f\u092f\u093e \u0939\u0948, \u091c\u094b 16.5 LPA \u0939\u0948\u0964"
+    },
+    {
+      "id": 13,
+      "language": "telugu",
+      "category": "exam_fees",
+      "question": "\u0c2a\u0c30\u0c40\u0c15\u0c4d\u0c37 \u0c30\u0c41\u0c38\u0c41\u0c2e\u0c41 \u0c0e\u0c02\u0c24?",
+      "status": "\u2705 PASS",
+      "accuracy": 50,
+      "latency": 21.63,
+      "keywords_found": [
+        "stanleyexams"
+      ],
+      "keywords_missing": [
+        "fee"
+      ],
+      "reply_preview": "\u0c2a\u0c30\u0c40\u0c15\u0c4d\u0c37 \u0c30\u0c41\u0c38\u0c41\u0c2e\u0c41 \u0c2e\u0c40\u0c30\u0c41 \u0c1a\u0c26\u0c41\u0c35\u0c41\u0c24\u0c41\u0c28\u0c4d\u0c28 \u0c38\u0c46\u0c2e\u0c3f\u0c38\u0c4d\u0c1f\u0c30\u0c4d \u0c2e\u0c30\u0c3f\u0c2f\u0c41 \u0c36\u0c3e\u0c16\u0c28\u0c41 \u0c2c\u0c1f\u0c4d\u0c1f\u0c3f \u0c2e\u0c3e\u0c30\u0c41\u0c24\u0c41\u0c02\u0c26\u0c3f. \u0c2c\u0c3f\u0c07 (\u0c2c\u0c3f24) \u0c30\u0c46\u0c02\u0c21\u0c35 \u0c38\u0c46\u0c2e\u0c3f\u0c38\u0c4d\u0c1f\u0c30\u0c4d \u0c15\u0c4b\u0c38\u0c02"
+    },
+    {
+      "id": 14,
+      "language": "telugu",
+      "category": "results",
+      "question": "\u0c2b\u0c32\u0c3f\u0c24\u0c3e\u0c32\u0c41 \u0c0e\u0c32\u0c3e \u0c1a\u0c46\u0c15\u0c4d \u0c1a\u0c47\u0c2f\u0c3e\u0c32\u0c3f?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 22.16,
+      "keywords_found": [
+        "stanleyexams.in"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "\u0c2b\u0c32\u0c3f\u0c24\u0c3e\u0c32\u0c28\u0c41 \u0c1a\u0c46\u0c15\u0c4d \u0c1a\u0c47\u0c2f\u0c21\u0c3e\u0c28\u0c3f\u0c15\u0c3f, \u0c2e\u0c40\u0c30\u0c41 https://stanleyexams.in/ \u0c35\u0c46\u0c2c\u0c4d\u200c\u0c38\u0c48\u0c1f\u0c4d\u200c\u0c28\u0c41 \u0c38\u0c02\u0c26\u0c30\u0c4d\u0c36\u0c3f\u0c02\u0c1a\u0c3e\u0c32\u0c3f. \u0c05\u0c15\u0c4d\u0c15\u0c21, \u0c2e\u0c40\u0c30\u0c41 \u0c2e\u0c40 \u0c30\u0c4b\u0c32"
+    },
+    {
+      "id": 15,
+      "language": "hinglish",
+      "category": "exam_fees",
+      "question": "mera exam fee kya hai aur kab tak pay karna hai?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 21.82,
+      "keywords_found": [
+        "stanleyexams",
+        "fee"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "Aapka exam fee Rs.4250 hai, aur last date 12 December hai. Aapko fee www.stanleyexams.in par jaakar "
+    },
+    {
+      "id": 16,
+      "language": "hinglish",
+      "category": "placements",
+      "question": "konsi company ne sabse zyada package diya?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.81,
+      "keywords_found": [
+        "HSBC",
+        "16.5"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "HSBC company ne sabse zyada package diya, jo ki 16.5 LPA hai."
+    },
+    {
+      "id": 17,
+      "language": "telugish",
+      "category": "exam_fees",
+      "question": "naa exam fee enti? ela pay cheyali?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.94,
+      "keywords_found": [
+        "stanleyexams",
+        "fee"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "Mee exam fee details website www.stanleyexams.in lo untadi. Naa exam fee amount, last date, and paym"
+    },
+    {
+      "id": 18,
+      "language": "telugish",
+      "category": "results",
+      "question": "results ela chekku cheyali?",
+      "status": "\u2705 PASS",
+      "accuracy": 100,
+      "latency": 20.58,
+      "keywords_found": [
+        "stanleyexams.in"
+      ],
+      "keywords_missing": [],
+      "reply_preview": "Results chekku cheyali ante, mee www.stanleyexams.in website lo login cheyali. Roll Number tho login"
+    },
+    {
+      "id": 19,
+      "language": "urdu",
+      "category": "exam_fees",
+      "question": "\u0627\u0645\u062a\u062d\u0627\u0646\u06cc \u0641\u06cc\u0633 \u06a9\u062a\u0646\u06cc \u06c1\u06d2\u061f",
+      "status": "\u2705 PASS",
+      "accuracy": 50,
+      "latency": 21.12,
+      "keywords_found": [
+        "stanleyexams"
+      ],
+      "keywords_missing": [
+        "fee"
+      ],
+      "reply_preview": "\u0622\u067e \u06a9\u0627 \u0627\u0645\u062a\u062d\u0627\u0646\u06cc \u0641\u06cc\u0633 \u06a9\u062a\u0646\u0627 \u06c1\u06d2 \u06cc\u06c1 \u062c\u0627\u0646\u0646\u06d2 \u06a9\u06d2 \u0644\u06cc\u06d2\u060c \u0645\u06cc\u06ba \u0622\u067e \u06a9\u0648 www.stanleyexams.in \u067e\u0631 \u062c\u0627\u0646\u06d2 \u06a9\u0627 \u0645\u0634\u0648\u0631\u06c1 \u062f\u06cc\u062a\u0627 \u06c1\u0648\u06ba\u06d4 "
+    },
+    {
+      "id": 20,
+      "language": "tamil",
+      "category": "exam_fees",
+      "question": "\u0ba4\u0bc7\u0bb0\u0bcd\u0bb5\u0bc1 \u0b95\u0b9f\u0bcd\u0b9f\u0ba3\u0bae\u0bcd \u0b8e\u0bb5\u0bcd\u0bb5\u0bb3\u0bb5\u0bc1?",
+      "status": "\u2705 PASS",
+      "accuracy": 50,
+      "latency": 23.12,
+      "keywords_found": [
+        "stanleyexams"
+      ],
+      "keywords_missing": [
+        "fee"
+      ],
+      "reply_preview": "\u0ba4\u0bc7\u0bb0\u0bcd\u0bb5\u0bc1 \u0b95\u0b9f\u0bcd\u0b9f\u0ba3\u0bae\u0bcd \u0baa\u0bbf\u0bb0\u0bbf\u0bb5\u0bc1 \u0bae\u0bb1\u0bcd\u0bb1\u0bc1\u0bae\u0bcd \u0b95\u0bb2\u0bcd\u0bb2\u0bc2\u0bb0\u0bbf \u0b95\u0b9f\u0bcd\u0b9f\u0ba3\u0bae\u0bcd \u0b85\u0bb3\u0bb5\u0bbf\u0bb2\u0bcd \u0bae\u0bbe\u0bb1\u0bc1\u0baa\u0b9f\u0bc1\u0bae\u0bcd. \u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0baa\u0bbf\u0bb0\u0bbf\u0bb5\u0bc1 \u0bae\u0bb1\u0bcd\u0bb1\u0bc1\u0bae\u0bcd \u0b95\u0bb2\u0bcd\u0bb2\u0bc2\u0bb0\u0bbf \u0b95\u0b9f\u0bcd\u0b9f\u0ba3\u0bae"
+    }
+  ]
+}

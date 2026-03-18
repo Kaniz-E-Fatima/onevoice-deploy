@@ -9,7 +9,7 @@ async def run_evaluation():
     from services.rag_service import get_context
     from services.gemini_service import get_gemini_response
 
-    with open("data/evaluation_questions.json") as f:
+    with open('test_cases.json', encoding='utf-8') as f:
         test_cases = json.load(f)["test_cases"]
 
     results = []
@@ -118,7 +118,7 @@ async def run_evaluation():
         print(f"  {cat:15} [{bar}] {pct}% ({stats['correct']}/{stats['total']})")
 
     # Save results
-    with open("evaluation_results.json", "w") as f:
+    with open('evaluation_results.json', 'w', encoding='utf-8') as f:
         json.dump({
             "summary": {
                 "total": total,
