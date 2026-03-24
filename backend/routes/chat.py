@@ -106,9 +106,8 @@ async def chat(request: ChatRequest):
         "session_id": session_id,
         "intent": intent,
         "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"]),
-        "bot_message_db_index": db_message_count - 1  # ✅ exact index of bot msg in DB
+        "bot_message_db_index": len(chat_history) + 1
     }
-
 class FeedbackRequest(BaseModel):
     session_id: str
     message_index: int
