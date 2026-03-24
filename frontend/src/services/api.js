@@ -7,19 +7,19 @@ export const sendMessage = async (message, sessionId = null, language = 'english
     message,
     session_id: sessionId,
     language,
-    token   // ADD THIS
+    token
   })
   return response.data
 }
 
-export async function sendFeedback(sessionId, messageIndex, feedback) {
+export async function sendFeedback(sessionId, dbMessageIndex, feedback) {
   const API_URL = import.meta.env.VITE_API_URL || '/api'
   const res = await fetch(`${API_URL}/chat/feedback`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       session_id: sessionId,
-      message_index: messageIndex,
+      message_index: dbMessageIndex,
       feedback
     })
   })

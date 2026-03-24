@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from services.gemini_service import get_gemini_response
@@ -47,9 +47,19 @@ async def chat(request: ChatRequest):
     session = await db.chat_sessions.find_one({"session_id": session_id})
     chat_history = session.get("messages", []) if session else []
 
+    context_summary = ""
+    if len(chat_history) > 0:
+        context_summary = "\n\nPREVIOUS CONVERSATION SUMMARY:\n"
+        for msg in chat_history[-10:]:
+            if isinstance(msg, dict):
+                role = "Student" if msg.get("role") == "user" else "OneVoice"
+                content = msg.get("content", "")
+                if isinstance(content, str) and content.strip():
+                    context_summary += f"{role}: {content[:200]}\n"
+
     reply = await get_gemini_response(
         query=request.message,
-        context=context,
+        context=context + context_summary,
         chat_history=chat_history,
         language=request.language
     )
@@ -89,11 +99,14 @@ async def chat(request: ChatRequest):
         "user_email": user_email
     })
 
+    # ✅ Return message count so frontend knows exact DB index
+    db_message_count = len(chat_history) + 2  # existing + user + bot
     return {
         "reply": reply,
         "session_id": session_id,
         "intent": intent,
-        "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"])
+        "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"]),
+        "bot_message_db_index": db_message_count - 1  # ✅ exact index of bot msg in DB
     }
 
 class FeedbackRequest(BaseModel):
@@ -107,12 +120,13 @@ async def save_feedback(request: FeedbackRequest):
     session = await db.chat_sessions.find_one({"session_id": request.session_id})
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
     messages = session.get("messages", [])
     if request.message_index < len(messages):
-        messages[request.message_index]["feedback"] = request.feedback
+        # ✅ Use positional update with exact index
         await db.chat_sessions.update_one(
             {"session_id": request.session_id},
-            {"$set": {"messages": messages}}
+            {"$set": {f"messages.{request.message_index}.feedback": request.feedback}}
         )
-    return {"message": "Feedback saved"}
+        return {"message": "Feedback saved"}
+    raise HTTPException(status_code=400, detail="Invalid message index")
