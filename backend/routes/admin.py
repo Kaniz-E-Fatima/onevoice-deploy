@@ -31,11 +31,14 @@ async def get_sessions(x_admin_key: str = Header(None)):
         clean_messages = []
         for m in messages:
             if isinstance(m, dict):
-                clean_messages.append({
+                clean_msg = {
                     "role": str(m.get("role", "unknown")),
                     "content": str(m.get("content", "")),
                     "timestamp": str(m.get("timestamp", ""))
-                })
+                }
+                if "feedback" in m:
+                    clean_msg["feedback"] = m["feedback"]
+                clean_messages.append(clean_msg)
         s["messages"] = clean_messages
     return sessions
 
