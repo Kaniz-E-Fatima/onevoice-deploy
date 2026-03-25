@@ -38,10 +38,10 @@ const LANG_FLAGS = {
     telugu: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#7c3aed', verticalAlign: 'middle' }} />,
     tamil: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#be123c', verticalAlign: 'middle' }} />,
     hinglish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0891b2', verticalAlign: 'middle' }} />,
-    urdulish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#7e22ce', verticalAlign: 'middle' }} />,
-    telugish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0f766e', verticalAlign: 'middle' }} />,
+    urdulish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#db2777', verticalAlign: 'middle' }} />,
+    telugish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#d97706', verticalAlign: 'middle' }} />,
 }
-const LANG_COLORS = { english: '#1d4ed8', hindi: '#b45309', urdu: '#047857', telugu: '#7c3aed', tamil: '#be123c', hinglish: '#0891b2', urdulish: '#7e22ce', telugish: '#0f766e' }
+const LANG_COLORS = { english: '#1d4ed8', hindi: '#b45309', urdu: '#047857', telugu: '#7c3aed', tamil: '#be123c', hinglish: '#0891b2', urdulish: '#db2777', telugish: '#d97706' }
 
 function StatCard({ icon, label, value, color }) {
     return (
