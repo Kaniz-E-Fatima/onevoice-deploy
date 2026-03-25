@@ -37,8 +37,11 @@ const WELCOME_MESSAGES = {
   english: `👋 ${getGreeting()}! I'm OneVoice, your Stanley College assistant. Ask me about exam fees, timetables, results, placements, or events!`,
   hindi: `👋 ${getGreeting()}! मैं OneVoice हूँ, आपका Stanley College सहायक। परीक्षा शुल्क, टाइमटेबल, परिणाम, या प्लेसमेंट के बारे में पूछें!`,
   urdu: `👋 ${getGreeting()}! میں OneVoice ہوں، آپ کا Stanley College اسسٹنٹ۔ امتحانی فیس، ٹائم ٹیبل، نتائج یا پلیسمنٹ کے بارے میں پوچھیں!`,
+  urdulish: `👋 ${getGreeting()}! Main OneVoice hoon, aapka Stanley College assistant. Exam fees, timetable, results ya placements ke baare mein poochein!`,
   telugu: `👋 ${getGreeting()}! నేను OneVoice, మీ Stanley College సహాయకుడిని. పరీక్ష రుసుములు, టైమ్‌టేబుల్, ఫలితాలు లేదా ప్లేస్‌మెంట్ గురించి అడగండి!`,
-  tamil: `👋 ${getGreeting()}! நான் OneVoice, உங்கள் Stanley College உதவியாளர். தேர்வு கட்டணம், நேர அட்டவணை, முடிவுகள் அல்லது வேலைவாய்ப்பு பற்றி கேளுங்கள்!`,
+  telugish: `👋 ${getGreeting()}! Nenu OneVoice, mee Stanley College assistant. Exam fees, timetable, results leda placements gurinchi adagandi!`,
+  tamil: `👋 ${getGreeting()}! நான் OneVoice, உங்கள் Stanley College உதவியாளர். தேர்வு கட்டணம், நேர அட்டவணை, முடிவுகள் அல்லது வேலைவாய்பு பற்றி கேளுங்கள்!`,
+  hinglish: `👋 ${getGreeting()}! Main OneVoice hoon, aapka Stanley College ka assistant. Exam fees, timetable, results ya placements ke baare mein poochein!`,
 }
 
 const STORAGE_KEY = 'onevoice_chat_history'

@@ -7,6 +7,10 @@ const LANG_CONFIG = {
   urdu: { codes: ['ur-PK', 'ur-IN', 'ur'], bcp47: 'ur-PK' },
   telugu: { codes: ['te-IN', 'te'], bcp47: 'te-IN' },
   tamil: { codes: ['ta-IN', 'ta-SG', 'ta'], bcp47: 'ta-IN' },
+  // Roman-script mixed languages fall back to English voice
+  hinglish: { codes: ['en-IN', 'hi-IN', 'en-US'], bcp47: 'en-IN' },
+  urdulish: { codes: ['en-IN', 'ur-PK', 'en-US'], bcp47: 'en-IN' },
+  telugish: { codes: ['en-IN', 'te-IN', 'en-US'], bcp47: 'en-IN' },
 }
 
 function findBestVoice(language) {
