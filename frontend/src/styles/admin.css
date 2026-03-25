@@ -110,6 +110,7 @@
     background: #f1f5f9;
     font-family: var(--font-body);
     color: var(--black);
+    overflow-x: hidden; /* ✅ prevent horizontal scroll / blank space on mobile */
 }
 
 /* ── Header ───────────────────────────────────────────────────────────────── */
@@ -818,28 +819,71 @@
 
 @media (max-width: 600px) {
     .adm-header {
-        padding: 0 16px;
+        padding: 0 12px;
+        height: 58px;
     }
 
     .adm-header-title {
-        font-size: 14px;
+        font-size: 13px;
     }
 
-    .adm-content {
-        padding: 16px;
+    .adm-header-sub {
+        display: none;
     }
 
+    .adm-header-logo {
+        width: 34px;
+        height: 34px;
+    }
+
+    .adm-btn-refresh,
+    .adm-btn-logout {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .adm-live-badge {
+        display: none;
+    }
+
+    /* ✅ Tab bar scrolls horizontally — no more page overflow */
     .adm-tabs {
-        padding: 12px 16px 0;
+        padding: 10px 12px 0;
         gap: 2px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .adm-tabs::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
     }
 
     .adm-tab {
-        padding: 8px 12px;
+        padding: 7px 11px;
         font-size: 12px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .adm-content {
+        padding: 12px;
     }
 
     .adm-stats-grid {
         grid-template-columns: 1fr 1fr;
     }
-}
+
+    .adm-card {
+        padding: 16px;
+    }
+
+    .adm-stat-card {
+        padding: 16px 14px;
+    }
+
+    .adm-stat-number {
+        font-size: 24px;
+    }
+}
