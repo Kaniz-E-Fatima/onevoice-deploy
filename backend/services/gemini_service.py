@@ -70,18 +70,33 @@ Always direct students to www.stanleyexams.in for fee payment and results.
 
 You understand questions in English, Hindi, Urdu, Telugu, Tamil and all their mixed forms."""
 
+def _has_non_latin_script(text: str) -> bool:
+    """Return True only if the text contains actual non-Latin script characters.
+    Pure ASCII / romanized text (e.g. 'Mera fee kya hai') returns False."""
+    for ch in text:
+        cp = ord(ch)
+        # Devanagari (Hindi), Arabic (Urdu), Telugu, Tamil ranges
+        if (0x0900 <= cp <= 0x097F or   # Devanagari
+            0x0600 <= cp <= 0x06FF or   # Arabic / Urdu
+            0x0C00 <= cp <= 0x0C7F or   # Telugu
+            0x0B80 <= cp <= 0x0BFF):    # Tamil
+            return True
+    return False
+
 async def get_gemini_response(query: str, context: str, chat_history: list = None, language: str = "english") -> str:
     if chat_history is None:
         chat_history = []
     try:
-        # ✅ Auto detect language and code mixing
-        detected = detect_language(query)
-        code_mix = detect_code_mix(query)
-
-        if code_mix:
-            language = code_mix
-        elif detected != "english":
-            language = detected
+        # ✅ Only auto-detect language when the text contains actual non-Latin
+        # script characters (Devanagari, Arabic, Telugu, Tamil).
+        # Pure ASCII / romanized text always respects the user's UI selection.
+        if _has_non_latin_script(query):
+            detected = detect_language(query)
+            code_mix = detect_code_mix(query)
+            if code_mix:
+                language = code_mix
+            elif detected != "english":
+                language = detected
 
         lang_instruction = LANGUAGE_INSTRUCTIONS.get(language, LANGUAGE_INSTRUCTIONS["english"])
 
@@ -93,7 +108,7 @@ async def get_gemini_response(query: str, context: str, chat_history: list = Non
                 if isinstance(content, str) and content.strip():
                     history_messages.append({"role": role, "content": content})
 
-        system = f"{SYSTEM_PROMPT}\n\nLANGUAGE INSTRUCTION: {lang_instruction}\n\nKNOWLEDGE BASE:\n{context}"
+        system = f"{SYSTEM_PROMPT}\n\nLANGUAGE INSTRUCTION (STRICT - follow this regardless of chat history): {lang_instruction} Do NOT switch languages mid-response. Do NOT mix languages unless the instruction explicitly calls for code-mixing.\n\nKNOWLEDGE BASE:\n{context}"
 
         messages = [
             {"role": "system", "content": system},
