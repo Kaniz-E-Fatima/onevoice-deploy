@@ -36,9 +36,12 @@ const LANG_FLAGS = {
     hindi: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#b45309', verticalAlign: 'middle' }} />,
     urdu: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#047857', verticalAlign: 'middle' }} />,
     telugu: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#7c3aed', verticalAlign: 'middle' }} />,
-    tamil: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#be123c', verticalAlign: 'middle' }} />
+    tamil: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#be123c', verticalAlign: 'middle' }} />,
+    hinglish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0891b2', verticalAlign: 'middle' }} />,
+    urdulish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#7e22ce', verticalAlign: 'middle' }} />,
+    telugish: <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: '#0f766e', verticalAlign: 'middle' }} />,
 }
-const LANG_COLORS = { english: '#1d4ed8', hindi: '#b45309', urdu: '#047857', telugu: '#7c3aed', tamil: '#be123c' }
+const LANG_COLORS = { english: '#1d4ed8', hindi: '#b45309', urdu: '#047857', telugu: '#7c3aed', tamil: '#be123c', hinglish: '#0891b2', urdulish: '#7e22ce', telugish: '#0f766e' }
 
 function StatCard({ icon, label, value, color }) {
     return (
@@ -380,8 +383,19 @@ export default function AdminDashboard() {
     const topLang = Object.entries(langCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
     const avgMsgs = sessions.length ? Math.round((totalMessages / sessions.length) * 10) / 10 : 0
 
-    const last7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d })
-    const dayCounts = last7.map(d => sessions.filter(s => {
+    // ✅ Show Mon–Sun of the current calendar week (not rolling 7 days)
+    const getThisMonday = () => {
+        const d = new Date()
+        const day = d.getDay() // 0=Sun, 1=Mon...
+        const diff = day === 0 ? -6 : 1 - day // shift to Monday
+        const mon = new Date(d)
+        mon.setDate(d.getDate() + diff)
+        mon.setHours(0, 0, 0, 0)
+        return mon
+    }
+    const monday = getThisMonday()
+    const weekDays = Array.from({ length: 7 }, (_, i) => { const d = new Date(monday); d.setDate(monday.getDate() + i); return d })
+    const dayCounts = weekDays.map(d => sessions.filter(s => {
         try { return s.updated_at && new Date(s.updated_at).toDateString() === d.toDateString() }
         catch { return false }
     }).length)
@@ -573,7 +587,7 @@ export default function AdminDashboard() {
                                 <div className="adm-card">
                                     <div className="adm-card-title">📅 Sessions — Last 7 Days</div>
                                     <div className="adm-bar-chart">
-                                        {last7.map((d, i) => (
+                                        {weekDays.map((d, i) => (
                                             <div key={i} className="adm-bar-col">
                                                 <div className="adm-bar-val">{dayCounts[i]}</div>
                                                 <div className="adm-bar" style={{ height: `${(dayCounts[i] / maxDay) * 100}%` }} />
