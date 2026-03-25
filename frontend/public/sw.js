@@ -1,5 +1,6 @@
-const CACHE_NAME = 'onevoice-v2'
-const urlsToCache = ['/', '/index.html', '/logo.png', '/manifest.json']
+const CACHE_NAME = 'onevoice-v4'
+// Only cache truly static assets — NEVER cache index.html
+const urlsToCache = ['/logo.png', '/manifest.json']
 
 self.addEventListener('install', event => {
     self.skipWaiting()
@@ -14,14 +15,28 @@ self.addEventListener('activate', event => {
             Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
         )
     )
+    self.clients.claim()
 })
 
 self.addEventListener('fetch', event => {
-    // Never cache JS/CSS bundles — always fetch fresh
-    if (event.request.url.includes('/assets/')) {
+    const url = new URL(event.request.url)
+
+    // Always fetch HTML (navigation) fresh from network — never serve from cache
+    // This prevents stale index.html from referencing old JS bundle hashes
+    if (event.request.mode === 'navigate' ||
+        url.pathname === '/' ||
+        url.pathname.endsWith('.html')) {
         event.respondWith(fetch(event.request))
         return
     }
+
+    // Always fetch JS/CSS bundles fresh (they have content hashes anyway)
+    if (url.pathname.includes('/assets/')) {
+        event.respondWith(fetch(event.request))
+        return
+    }
+
+    // Cache-first for logo, manifest, icons
     event.respondWith(
         caches.match(event.request).then(response => response || fetch(event.request))
     )
