@@ -13,6 +13,8 @@ const LANGUAGES = [
   { code: 'urdu', label: 'اردو' },
   { code: 'telugu', label: 'తె' },
   { code: 'tamil', label: 'த' },
+  { code: 'hinglish', label: 'Hinglish' },
+  { code: 'telugish', label: 'Telugish' },
 ]
 
 const SUGGESTIONS = [
