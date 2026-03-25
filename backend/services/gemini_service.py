@@ -102,7 +102,7 @@ async def get_gemini_response(query: str, context: str, chat_history: list = Non
         ]
 
         response = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",
             messages=messages,
             max_tokens=300,
             temperature=0.7
