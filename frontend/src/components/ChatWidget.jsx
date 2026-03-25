@@ -11,6 +11,7 @@ const LANGUAGES = [
   { code: 'english', label: 'EN' },
   { code: 'hindi', label: 'हि' },
   { code: 'urdu', label: 'اردو' },
+  { code: 'urdulish', label: 'Urdulish' },
   { code: 'telugu', label: 'తె' },
   { code: 'tamil', label: 'த' },
   { code: 'hinglish', label: 'Hinglish' },

@@ -41,14 +41,14 @@ def detect_code_mix(text: str) -> str:
 client = Groq(api_key=GROQ_API_KEY)
 
 LANGUAGE_INSTRUCTIONS = {
-    "english": "Always reply in English.",
-    "hindi": "हमेशा हिंदी में जवाब दें। (Always reply in Hindi)",
-    "urdu": "ہمیشہ اردو میں جواب دیں۔ (Always reply in Urdu)",
-    "telugu": "ఎల్లప్పుడూ తెలుగులో సమాధానం ఇవ్వండి. (Always reply in Telugu)",
-    "tamil": "எப்போதும் தமிழில் பதில் சொல்லுங்கள். (Always reply in Tamil)",
-    "hinglish": "Reply in Hinglish (mix of Hindi and English). Example: 'Aapka exam fee Rs.4250 hai, aur last date 12 December hai.'",
-    "telugish": "Reply in Telugish (mix of Telugu and English). Example: 'Mee exam fee Rs.4250 undi, last date December 12 undi.'",
-    "urdulish": "Reply in Urdulish (mix of Urdu and English). Example: 'Aapka exam fee Rs.4250 hai, aur last date 12 December hai.'",
+    "english": "Always reply in English only.",
+    "hindi": "ہمیشہ صرف ہندی رسم الخط (देवनागरी) میں جواب دیں۔ Example: 'आपकी परीक्षा फीस Rs.4250 है।' (Always reply in Hindi using Devanagari script only, never Roman/English letters for Hindi words)",
+    "urdu": "ہمیشہ صرف اردو رسم الخط (Arabic/Nastaliq) میں جواب دیں۔ Example: 'آپ کی امتحانی فیس Rs.4250 ہے اور آخری تاریخ 12 دسمبر ہے۔' (CRITICAL: Reply ONLY in proper Urdu using Arabic script characters like ا ب پ ت ث ج etc. NEVER use Roman/Latin letters for Urdu words. Every Urdu word must be written in Arabic script.)",
+    "telugu": "ఎల్లప్పుడూ తెలుగు లిపిలో మాత్రమే సమాధానం ఇవ్వండి. Example: 'మీ పరీక్ష రుసుము Rs.4250.' (Always reply in Telugu using Telugu script only)",
+    "tamil": "எப்போதும் தமிழ் எழுத்தில் மட்டும் பதில் சொல்லுங்கள். Example: 'உங்கள் தேர்வு கட்டணம் Rs.4250.' (Always reply in Tamil script only)",
+    "hinglish": "Reply in Hinglish — a natural mix of Hindi words written in Roman/Latin script and English words. Example: 'Aapka exam fee Rs.4250 hai, aur last date 12 December hai. Fee pay karne ke liye www.stanleyexams.in jaayein.'",
+    "telugish": "Reply in Telugish — a natural mix of Telugu words written in Roman/Latin script and English words. Example: 'Mee exam fee Rs.4250 undi, last date December 12 undi. Fee pay cheyyataniki www.stanleyexams.in ki vellaandi.'",
+    "urdulish": "Reply in Urdulish — a natural mix of Urdu words written in Roman/Latin script and English words. Example: 'Aapka exam fee Rs.4250 hai, aur last date 12 December hai. Fees pay karne ke liye www.stanleyexams.in jaayein.' (Use Roman letters only, NOT Arabic script)",
     "tamlish": "Reply in Tamlish (mix of Tamil and English). Example: 'Ungal exam fee Rs.4250, last date December 12 irukku.'",
 }
 
