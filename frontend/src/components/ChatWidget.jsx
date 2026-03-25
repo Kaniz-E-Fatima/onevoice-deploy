@@ -222,177 +222,181 @@ export default function ChatWidget() {
           role: 'assistant',
           content: finalText,
           showFeedback: true,
-          dbIndex: data.bot_message_db_index  // ✅ store exact DB index
+          dbIndex: data.bot_message_db_index
         }])
-      } catch (err) {
-        setLoading(false)
-        try {
-          const API_URL = import.meta.env.VITE_API_URL || '/api'
-          const errorMsg = "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
-          const res = await fetch(`${API_URL}/chat/error`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ session_id: sessionId, message: text, error_reply: errorMsg })
-          })
-          const data = await res.json()
-          setSessionId(data.session_id)
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: errorMsg,
-            showFeedback: true,
-            dbIndex: data.bot_message_db_index
-          }])
-        } catch (innerErr) {
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
-          }])
+        if (voiceOutput) setTimeout(() => speakText(finalText, language), 150)
+        if (data.suggestions && data.suggestions.length > 0) {
+          setFollowUpSuggestions(data.suggestions)
         }
+      })
+    } catch (err) {
+      setLoading(false)
+      const errorMsg = "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
+      try {
+        const res = await fetch(`${API_URL}/chat/error`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId, message: text, error_reply: errorMsg })
+        })
+        const errData = await res.json()
+        setSessionId(errData.session_id)
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: errorMsg,
+          showFeedback: true,
+          dbIndex: errData.bot_message_db_index
+        }])
+      } catch (innerErr) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: errorMsg
+        }])
       }
     }
+  }
 
   const handleSuggestion = (suggestion) => handleSend(suggestion.replace(/[💰📅📊🏢🎉]/g, '').trim())
 
-    const handleFeedback = async (index, type) => {
-      const msg = messages[index]
-      setMessages(prev => prev.map((m, i) =>
-        i === index ? { ...m, feedback: type, showFeedback: false } : m
-      ))
-      // ✅ Use DB index stored in message, not React array index
-      if (sessionId && msg?.dbIndex !== undefined) {
-        try {
-          await sendFeedback(sessionId, msg.dbIndex, type)
-        } catch (e) { console.error('Feedback error:', e) }
-      }
+  const handleFeedback = async (index, type) => {
+    const msg = messages[index]
+    setMessages(prev => prev.map((m, i) =>
+      i === index ? { ...m, feedback: type, showFeedback: false } : m
+    ))
+    // ✅ Use DB index stored in message, not React array index
+    if (sessionId && msg?.dbIndex !== undefined) {
+      try {
+        await sendFeedback(sessionId, msg.dbIndex, type)
+      } catch (e) { console.error('Feedback error:', e) }
     }
+  }
 
-    const clearHistory = () => {
-      stopSpeech()
-      setMessages([{ role: 'assistant', content: WELCOME_MESSAGES[language] }])
-      setSessionId(null)
-      setShowSuggestions(true)
-      localStorage.removeItem(STORAGE_KEY)
-    }
+  const clearHistory = () => {
+    stopSpeech()
+    setMessages([{ role: 'assistant', content: WELCOME_MESSAGES[language] }])
+    setSessionId(null)
+    setShowSuggestions(true)
+    localStorage.removeItem(STORAGE_KEY)
+  }
 
-    const handleVoiceToggle = () => {
-      if (isSpeaking) { stopSpeech(); setIsSpeaking(false) }
-      else setVoiceOutput(v => !v)
-    }
+  const handleVoiceToggle = () => {
+    if (isSpeaking) { stopSpeech(); setIsSpeaking(false) }
+    else setVoiceOutput(v => !v)
+  }
 
-    return (
-      <div className={`chat-widget-container ${darkMode ? 'dark' : ''} ${isMaximized ? 'maximized' : ''}`}>
-        {isOpen && (
-          <div className="chat-window">
-            <div className="chat-header">
-              <div className="chat-header-top">
-                <div className="chat-header-info">
-                  <img src="/logo.png" alt="SC" className="chat-avatar" />
-                  <div>
-                    <div className="chat-title">OneVoice</div>
-                    <div className="chat-subtitle">
-                      Stanley College · AI Assistant
-                      {backendStatus === 'waking' && (
-                        <span className="waking-badge"> · ⏳ Starting up...</span>
-                      )}
-                    </div>
+  return (
+    <div className={`chat-widget-container ${darkMode ? 'dark' : ''} ${isMaximized ? 'maximized' : ''}`}>
+      {isOpen && (
+        <div className="chat-window">
+          <div className="chat-header">
+            <div className="chat-header-top">
+              <div className="chat-header-info">
+                <img src="/logo.png" alt="SC" className="chat-avatar" />
+                <div>
+                  <div className="chat-title">OneVoice</div>
+                  <div className="chat-subtitle">
+                    Stanley College · AI Assistant
+                    {backendStatus === 'waking' && (
+                      <span className="waking-badge"> · ⏳ Starting up...</span>
+                    )}
                   </div>
                 </div>
-                <div className="header-actions">
-                  <button
-                    className={`icon-btn ${voiceOutput ? 'active' : ''} ${isSpeaking ? 'speaking' : ''}`}
-                    onClick={handleVoiceToggle}
-                    title={isSpeaking ? 'Stop speaking' : voiceOutput ? 'Voice ON' : 'Voice OFF'}
-                  >{isSpeaking ? '⏹' : '🔊'}</button>
-                  <button className="icon-btn" onClick={() => setShowHistory(h => !h)} title="History">📋</button>
-                  <button className="icon-btn" onClick={() => setDarkMode(d => !d)}>
-                    {darkMode ? '☀️' : '🌙'}
-                  </button>
-                  <button className="icon-btn" onClick={() => setIsMaximized(m => !m)}>
-                    {isMaximized ? '⊡' : '⊞'}
-                  </button>
-                  <button className="icon-btn" onClick={clearHistory} title="Clear">🗑️</button>
-                  <button className="chat-close-btn" onClick={() => { setIsOpen(false); stopSpeech() }}>✕</button>
-                </div>
               </div>
-              <div className="lang-selector">
-                {LANGUAGES.map(lang => (
-                  <button
-                    key={lang.code}
-                    className={`lang-btn ${language === lang.code ? 'active' : ''}`}
-                    onClick={() => handleLanguageChange(lang.code)}
-                  >{lang.label}</button>
+              <div className="header-actions">
+                <button
+                  className={`icon-btn ${voiceOutput ? 'active' : ''} ${isSpeaking ? 'speaking' : ''}`}
+                  onClick={handleVoiceToggle}
+                  title={isSpeaking ? 'Stop speaking' : voiceOutput ? 'Voice ON' : 'Voice OFF'}
+                >{isSpeaking ? '⏹' : '🔊'}</button>
+                <button className="icon-btn" onClick={() => setShowHistory(h => !h)} title="History">📋</button>
+                <button className="icon-btn" onClick={() => setDarkMode(d => !d)}>
+                  {darkMode ? '☀️' : '🌙'}
+                </button>
+                <button className="icon-btn" onClick={() => setIsMaximized(m => !m)}>
+                  {isMaximized ? '⊡' : '⊞'}
+                </button>
+                <button className="icon-btn" onClick={clearHistory} title="Clear">🗑️</button>
+                <button className="chat-close-btn" onClick={() => { setIsOpen(false); stopSpeech() }}>✕</button>
+              </div>
+            </div>
+            <div className="lang-selector">
+              {LANGUAGES.map(lang => (
+                <button
+                  key={lang.code}
+                  className={`lang-btn ${language === lang.code ? 'active' : ''}`}
+                  onClick={() => handleLanguageChange(lang.code)}
+                >{lang.label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Wake-up screen */}
+          {backendStatus === 'waking' ? (
+            <div className="waking-screen">
+              <div className="waking-spinner" />
+              <div className="waking-title">Starting OneVoice...</div>
+              <div className="waking-sub">
+                Our server is waking up. This takes about 30 seconds on first visit.
+              </div>
+              <div className="waking-timer">{wakeUpSeconds}s</div>
+              <div className="waking-tip">☕ Just a moment while we get ready for you!</div>
+            </div>
+          ) : showHistory ? (
+            <div className="history-panel">
+              <div className="history-title">💬 Chat History ({messages.length} messages)</div>
+              <div className="history-list">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`history-item ${msg.role}`}>
+                    <span className="history-role">{msg.role === 'user' ? '👤 You' : '🤖 OneVoice'}</span>
+                    <span className="history-content">
+                      {msg.content.slice(0, 80)}{msg.content.length > 80 ? '...' : ''}
+                    </span>
+                  </div>
                 ))}
               </div>
+              <button className="history-close-btn" onClick={() => setShowHistory(false)}>Back to Chat</button>
             </div>
-
-            {/* Wake-up screen */}
-            {backendStatus === 'waking' ? (
-              <div className="waking-screen">
-                <div className="waking-spinner" />
-                <div className="waking-title">Starting OneVoice...</div>
-                <div className="waking-sub">
-                  Our server is waking up. This takes about 30 seconds on first visit.
-                </div>
-                <div className="waking-timer">{wakeUpSeconds}s</div>
-                <div className="waking-tip">☕ Just a moment while we get ready for you!</div>
-              </div>
-            ) : showHistory ? (
-              <div className="history-panel">
-                <div className="history-title">💬 Chat History ({messages.length} messages)</div>
-                <div className="history-list">
-                  {messages.map((msg, i) => (
-                    <div key={i} className={`history-item ${msg.role}`}>
-                      <span className="history-role">{msg.role === 'user' ? '👤 You' : '🤖 OneVoice'}</span>
-                      <span className="history-content">
-                        {msg.content.slice(0, 80)}{msg.content.length > 80 ? '...' : ''}
-                      </span>
-                    </div>
+          ) : (
+            <>
+              <ChatMessages
+                messages={messages}
+                loading={loading}
+                onFeedback={handleFeedback}
+                typingText={typingText}
+                isTyping={isTyping}
+                language={language}
+              />
+              {showSuggestions && (
+                <div className="suggestions">
+                  {SUGGESTIONS.map(s => (
+                    <button key={s} className="suggestion-btn" onClick={() => handleSuggestion(s)}>{s}</button>
                   ))}
                 </div>
-                <button className="history-close-btn" onClick={() => setShowHistory(false)}>Back to Chat</button>
-              </div>
-            ) : (
-              <>
-                <ChatMessages
-                  messages={messages}
-                  loading={loading}
-                  onFeedback={handleFeedback}
-                  typingText={typingText}
-                  isTyping={isTyping}
-                  language={language}
-                />
-                {showSuggestions && (
-                  <div className="suggestions">
-                    {SUGGESTIONS.map(s => (
-                      <button key={s} className="suggestion-btn" onClick={() => handleSuggestion(s)}>{s}</button>
-                    ))}
-                  </div>
-                )}
-                {/* ✅ Follow-up suggestions after bot reply */}
-                {!showSuggestions && followUpSuggestions.length > 0 && (
-                  <div className="suggestions">
-                    {followUpSuggestions.map((s, i) => (
-                      <button key={i} className="suggestion-btn"
-                        onClick={() => { setFollowUpSuggestions([]); handleSend(s) }}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <ChatInput onSend={handleSend} loading={loading || isTyping} language={language} />
-              </>
-            )}
+              )}
+              {/* ✅ Follow-up suggestions after bot reply */}
+              {!showSuggestions && followUpSuggestions.length > 0 && (
+                <div className="suggestions">
+                  {followUpSuggestions.map((s, i) => (
+                    <button key={i} className="suggestion-btn"
+                      onClick={() => { setFollowUpSuggestions([]); handleSend(s) }}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <ChatInput onSend={handleSend} loading={loading || isTyping} language={language} />
+            </>
+          )}
+        </div>
+      )}
+
+      <button className="chat-fab" onClick={() => { setIsOpen(o => !o); if (isOpen) stopSpeech() }}>
+        {isOpen ? '✕' : (
+          <div className="fab-text-content">
+            <span className="fab-ask">Ask</span>
+            <span className="fab-brand">OneVoice AI</span>
           </div>
         )}
-
-        <button className="chat-fab" onClick={() => { setIsOpen(o => !o); if (isOpen) stopSpeech() }}>
-          {isOpen ? '✕' : (
-            <div className="fab-text-content">
-              <span className="fab-ask">Ask</span>
-              <span className="fab-brand">OneVoice AI</span>
-            </div>
-          )}
-        </button>
-      </div>
-    )
-  }
+      </button>
+    </div>
+  )
+}
