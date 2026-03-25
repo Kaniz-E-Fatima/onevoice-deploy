@@ -26,6 +26,16 @@ class ChatRequest(BaseModel):
     language: Optional[str] = "english"
     token: Optional[str] = None
 
+class FeedbackRequest(BaseModel):
+    session_id: str
+    message_index: int
+    feedback: str
+
+class ErrorMessageRequest(BaseModel):
+    session_id: Optional[str] = None
+    message: str
+    error_reply: str
+
 SUGGESTIONS = {
     "exam_fees": ["How do I pay exam fees?", "What is the last date for fee payment?", "What if I miss the deadline?"],
     "timetables": ["When are BE III sem exams?", "What time do exams start?", "Where can I find timetables?"],
@@ -99,8 +109,6 @@ async def chat(request: ChatRequest):
         "user_email": user_email
     })
 
-    # ✅ Return message count so frontend knows exact DB index
-    db_message_count = len(chat_history) + 2  # existing + user + bot
     return {
         "reply": reply,
         "session_id": session_id,
@@ -108,10 +116,7 @@ async def chat(request: ChatRequest):
         "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"]),
         "bot_message_db_index": len(chat_history) + 1
     }
-class FeedbackRequest(BaseModel):
-    session_id: str
-    message_index: int
-    feedback: str
+
 
 @router.post("/chat/feedback")
 async def save_feedback(request: FeedbackRequest):
@@ -122,7 +127,6 @@ async def save_feedback(request: FeedbackRequest):
 
     messages = session.get("messages", [])
     if request.message_index < len(messages):
-        # ✅ Use positional update with exact index
         await db.chat_sessions.update_one(
             {"session_id": request.session_id},
             {"$set": {f"messages.{request.message_index}.feedback": request.feedback}}
@@ -130,10 +134,6 @@ async def save_feedback(request: FeedbackRequest):
         return {"message": "Feedback saved"}
     raise HTTPException(status_code=400, detail="Invalid message index")
 
-    class ErrorMessageRequest(BaseModel):
-    session_id: Optional[str] = None
-    message: str
-    error_reply: str
 
 @router.post("/chat/error")
 async def save_error_message(request: ErrorMessageRequest):
