@@ -226,10 +226,29 @@ export default function ChatWidget() {
         }])
       } catch (err) {
         setLoading(false)
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
-        }])
+        // ✅ Save error message to DB so feedback can be recorded
+        try {
+          const API_URL = import.meta.env.VITE_API_URL || '/api'
+          const errorMsg = "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
+          const res = await fetch(`${API_URL}/chat/error`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, message: text, error_reply: errorMsg })
+          })
+          const data = await res.json()
+          setSessionId(data.session_id)
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: errorMsg,
+            showFeedback: true,
+            dbIndex: data.bot_message_db_index
+          }])
+        } catch {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
+          }])
+        }
       }
     }
 

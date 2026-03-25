@@ -129,3 +129,44 @@ async def save_feedback(request: FeedbackRequest):
         )
         return {"message": "Feedback saved"}
     raise HTTPException(status_code=400, detail="Invalid message index")
+
+    class ErrorMessageRequest(BaseModel):
+    session_id: Optional[str] = None
+    message: str
+    error_reply: str
+
+@router.post("/chat/error")
+async def save_error_message(request: ErrorMessageRequest):
+    db = get_db()
+    session_id = request.session_id or str(uuid.uuid4())
+    now = datetime.utcnow()
+
+    user_msg = {"role": "user", "content": request.message, "timestamp": now}
+    bot_msg = {"role": "assistant", "content": request.error_reply, "timestamp": now}
+
+    session = await db.chat_sessions.find_one({"session_id": session_id})
+    chat_history = session.get("messages", []) if session else []
+
+    if session:
+        await db.chat_sessions.update_one(
+            {"session_id": session_id},
+            {
+                "$push": {"messages": {"$each": [user_msg, bot_msg]}},
+                "$set": {"updated_at": now},
+                "$inc": {"message_count": 2}
+            }
+        )
+    else:
+        await db.chat_sessions.insert_one({
+            "session_id": session_id,
+            "language": "english",
+            "created_at": now,
+            "updated_at": now,
+            "message_count": 2,
+            "messages": [user_msg, bot_msg]
+        })
+
+    return {
+        "session_id": session_id,
+        "bot_message_db_index": len(chat_history) + 1
+    }
