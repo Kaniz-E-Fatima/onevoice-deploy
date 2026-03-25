@@ -226,7 +226,6 @@ export default function ChatWidget() {
         }])
       } catch (err) {
         setLoading(false)
-        // ✅ Save error message to DB so feedback can be recorded
         try {
           const API_URL = import.meta.env.VITE_API_URL || '/api'
           const errorMsg = "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
@@ -243,7 +242,7 @@ export default function ChatWidget() {
             showFeedback: true,
             dbIndex: data.bot_message_db_index
           }])
-        } catch {
+        } catch (innerErr) {
           setMessages(prev => [...prev, {
             role: 'assistant',
             content: "Sorry, I'm having trouble connecting. Please try again in a moment or visit www.stanley.edu.in"
