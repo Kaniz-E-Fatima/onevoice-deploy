@@ -4,18 +4,41 @@ from database.connection import get_db
 DATA_DIR = os.path.join(os.path.dirname(__file__), "../data")
 
 KEYWORD_INTENT = {
+    # Exam fees & payments
     "exam fee": "exam_fees", "fee": "exam_fees", "payment": "exam_fees",
     "fine": "exam_fees", "last date": "exam_fees", "deadline": "exam_fees",
     "how to pay": "exam_fees", "stanleyexams": "exam_fees", "tuition": "exam_fees",
+    "notification": "exam_fees", "arrear": "exam_fees", "backlog fee": "exam_fees",
+    "minor degree": "exam_fees", "mba fee": "exam_fees", "mtech fee": "exam_fees",
+    "one time chance": "exam_fees", "exam expenses": "exam_fees",
+    # Timetables & schedules
     "timetable": "timetables", "time table": "timetables", "exam date": "timetables",
     "schedule": "timetables", "when is": "timetables", "internal": "timetables",
+    "makeup exam": "timetables", "supplementary timetable": "timetables",
+    "revised timetable": "timetables",
+    # Results & revaluation
     "result": "results", "results": "results", "marks": "results",
     "revaluation": "results", "photocopy": "results", "memo": "results",
+    "challenge valuation": "results", "published": "results", "declared": "results",
+    "osmania": "results",
+    # Placements
     "placement": "placements", "job": "placements", "company": "placements",
     "package": "placements", "lpa": "placements", "infosys": "placements",
-    "hsbc": "placements", "event": "events", "conference": "events",
-    "workshop": "events", "bootcamp": "events", "holiday": "events"
+    "hsbc": "placements", "ubs": "placements", "hcl": "placements",
+    "deccan ai": "placements", "alstom": "placements", "purview": "placements",
+    "savantis": "placements", "congratulations": "placements", "placed": "placements",
+    "campus recruitment": "placements", "crt": "placements",
+    # Events, workshops, holidays, conferences
+    "event": "events", "conference": "events", "workshop": "events",
+    "bootcamp": "events", "holiday": "events", "hackathon": "events",
+    "3d printing": "events", "drone": "events", "iot": "events",
+    "internet of things": "events", "genai": "events", "forge": "events",
+    "icatdm": "events", "disaster management": "events", "women": "events",
+    "holi": "events", "celebration": "events", "entrepreneurship": "events",
+    "cybersecurity": "events", "cyber security": "events", "chevening": "events",
+    "awareness program": "events",
 }
+
 
 INTENT_FILENAMES = {
     "exam_fees": "exam_fees.txt",

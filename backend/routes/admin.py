@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Header, UploadFile, File
 from config import ADMIN_SECRET_KEY
 from database.connection import get_db
 from database.models import pdf_doc
+from services.sync_service import sync_data_folder
 import pymupdf
 import os
 import csv
@@ -14,6 +15,17 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "../data")
 def verify_admin(x_admin_key: str = Header(None)):
     if x_admin_key != ADMIN_SECRET_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
+
+# ✅ Manual re-sync endpoint — rescans data/ folder and adds any new/changed files
+@router.post("/admin/pdfs/sync")
+async def sync_pdfs(x_admin_key: str = Header(None)):
+    verify_admin(x_admin_key)
+    result = await sync_data_folder()
+    return {
+        "message": f"Sync complete: {result['synced']} new files added, {result['skipped']} already up-to-date, {result['failed']} failed.",
+        **result
+    }
+
 
 @router.get("/admin/sessions")
 async def get_sessions(x_admin_key: str = Header(None)):

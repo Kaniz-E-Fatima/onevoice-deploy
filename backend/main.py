@@ -8,6 +8,7 @@ from routes.chat import router as chat_router
 from routes.analytics import router as analytics_router
 from routes.admin import router as admin_router
 from routes.auth import router as auth_router
+from services.sync_service import sync_data_folder
 import asyncio
 import httpx
 import os
@@ -20,10 +21,31 @@ request_counts = defaultdict(list)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_db()
-    task = asyncio.create_task(keep_alive())
+    # ✅ Auto-sync data/ folder → MongoDB on every startup
+    try:
+        result = await sync_data_folder()
+        print(f"📂 Startup sync: {result['synced']} new, {result['skipped']} unchanged, {result['failed']} failed")
+    except Exception as e:
+        print(f"⚠️  Startup sync error: {e}")
+    # ✅ Start background tasks: keep-alive ping + periodic folder watcher
+    task_keepalive = asyncio.create_task(keep_alive())
+    task_watcher = asyncio.create_task(periodic_sync())
     yield
-    task.cancel()
+    task_keepalive.cancel()
+    task_watcher.cancel()
     await close_db()
+
+async def periodic_sync():
+    """Re-scan the data/ folder every 2 minutes and sync any new files to MongoDB."""
+    await asyncio.sleep(120)  # wait 2 mins before first poll (startup sync already ran)
+    while True:
+        try:
+            result = await sync_data_folder()
+            if result['synced'] > 0:
+                print(f"📂 Periodic sync: {result['synced']} new files added to knowledge base")
+        except Exception as e:
+            print(f"⚠️  Periodic sync error: {e}")
+        await asyncio.sleep(120)  # repeat every 2 minutes
 
 async def keep_alive():
     await asyncio.sleep(60)

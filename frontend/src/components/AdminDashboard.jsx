@@ -106,7 +106,9 @@ function LangBar({ lang, count, total }) {
 function PDFManager({ adminKey, API_URL }) {
     const [files, setFiles] = useState([])
     const [uploading, setUploading] = useState(false)
+    const [syncing, setSyncing] = useState(false)
     const [message, setMessage] = useState('')
+    const [syncResult, setSyncResult] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
 
@@ -131,6 +133,38 @@ function PDFManager({ adminKey, API_URL }) {
     }
 
     useEffect(() => { fetchFiles() }, [])
+
+    // ✅ Auto-refresh every 30 seconds — picks up files synced by the backend watcher
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchFiles()
+        }, 30000)
+        return () => clearInterval(interval)
+    }, [])
+
+
+    const handleSync = async () => {
+        setSyncing(true)
+        setSyncResult(null)
+        setMessage('')
+        try {
+            const res = await fetch(`${API_URL}/admin/pdfs/sync`, {
+                method: 'POST',
+                headers: pdfHeaders
+            })
+            const data = await res.json()
+            if (res.ok) {
+                setSyncResult(data)
+                await fetchFiles()
+            } else {
+                setMessage(`❌ Sync failed: ${data.detail || 'Unknown error'}`)
+            }
+        } catch (e) {
+            setMessage('❌ Cannot connect to backend')
+        } finally {
+            setSyncing(false)
+        }
+    }
 
     const handleUpload = async (e) => {
         const file = e.target.files[0]
@@ -172,8 +206,79 @@ function PDFManager({ adminKey, API_URL }) {
 
     return (
         <div>
+            {/* ✅ Auto-sync info banner */}
+            <div style={{
+                background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
+                border: '1px solid #bfdbfe',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '14px'
+            }}>
+                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>📂</span>
+                <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e40af', marginBottom: '4px' }}>
+                        Auto-Sync is Active
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#374151', lineHeight: 1.5 }}>
+                        Files placed in the <code style={{ background: '#e0e7ff', padding: '1px 6px', borderRadius: '4px' }}>backend/data/</code> folder
+                        are automatically loaded into the knowledge base every time the server starts.
+                        To sync new files without restarting, click <strong>Re-sync Now</strong>.
+                    </div>
+                    <button
+                        onClick={handleSync}
+                        disabled={syncing}
+                        style={{
+                            marginTop: '10px',
+                            background: syncing ? '#9ca3af' : '#1d4ed8',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 20px',
+                            borderRadius: '8px',
+                            cursor: syncing ? 'not-allowed' : 'pointer',
+                            fontWeight: 600,
+                            fontSize: '0.88rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                        }}
+                    >
+                        {syncing ? '⏳ Syncing...' : '🔄 Re-sync Now'}
+                    </button>
+                    {/* Sync result display */}
+                    {syncResult && (
+                        <div style={{
+                            marginTop: '10px',
+                            padding: '10px 14px',
+                            background: '#f0fdf4',
+                            border: '1px solid #86efac',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            color: '#166534',
+                            display: 'flex',
+                            gap: '16px',
+                            flexWrap: 'wrap'
+                        }}>
+                            <span>✅ <strong>{syncResult.synced}</strong> new files added</span>
+                            <span>⏭️ <strong>{syncResult.skipped}</strong> already up-to-date</span>
+                            {syncResult.failed > 0 && <span>⚠️ <strong>{syncResult.failed}</strong> failed</span>}
+                        </div>
+                    )}
+                    {message && !syncResult && (
+                        <div style={{
+                            marginTop: '10px', padding: '8px 14px',
+                            background: '#fff0f0', border: '1px solid #fca5a5',
+                            borderRadius: '8px', fontSize: '0.85rem', color: '#991b1b'
+                        }}>{message}</div>
+                    )}
+                </div>
+            </div>
+
+            {/* Manual single-file upload */}
             <div className="adm-card" style={{ marginBottom: '1.5rem' }}>
-                <div className="adm-card-title">📤 Upload New PDF or TXT</div>
+                <div className="adm-card-title">📤 Upload Single PDF or TXT</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                     <label style={{
                         background: '#8B0000', color: 'white',
@@ -202,9 +307,14 @@ function PDFManager({ adminKey, API_URL }) {
                     </div>
                 )}
             </div>
+
+            {/* File list */}
             <div className="adm-card">
                 <div className="adm-card-title">
                     📂 Knowledge Base Files
+                    <span style={{ fontSize: '0.8rem', fontWeight: 400, color: '#888', marginLeft: '8px' }}>
+                        ({files.length} files)
+                    </span>
                     <button onClick={fetchFiles} style={{
                         marginLeft: '1rem', background: 'none', border: '1px solid #ddd',
                         borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '0.8rem'
@@ -218,7 +328,7 @@ function PDFManager({ adminKey, API_URL }) {
                 {loading ? (
                     <div className="adm-loading"><div className="adm-spinner" />Loading files...</div>
                 ) : files.length === 0 && !error ? (
-                    <div className="adm-empty">No files uploaded yet. Upload your first PDF above!</div>
+                    <div className="adm-empty">No files yet. Add PDFs to <code>backend/data/</code> and click Re-sync!</div>
                 ) : (
                     <div style={{ marginTop: '1rem' }}>
                         {files.map((file, i) => (
