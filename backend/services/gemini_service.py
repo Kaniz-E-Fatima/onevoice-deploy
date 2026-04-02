@@ -41,32 +41,27 @@ def detect_code_mix(text: str) -> str:
 client = Groq(api_key=GROQ_API_KEY)
 
 LANGUAGE_INSTRUCTIONS = {
-    "english": "Always reply in English only.",
-    "hindi": "ہمیشہ صرف ہندی رسم الخط (देवनागरी) میں جواب دیں۔ Example: 'आपकी परीक्षा फीस Rs.4250 है।' (Always reply in Hindi using Devanagari script only, never Roman/English letters for Hindi words)",
-    "urdu": "ہمیشہ صرف اردو رسم الخط (Arabic/Nastaliq) میں جواب دیں۔ Example: 'آپ کی امتحانی فیس Rs.4250 ہے اور آخری تاریخ 12 دسمبر ہے۔' (CRITICAL: Reply ONLY in proper Urdu using Arabic script characters like ا ب پ ت ث ج etc. NEVER use Roman/Latin letters for Urdu words. Every Urdu word must be written in Arabic script.)",
-    "telugu": "ఎల్లప్పుడూ తెలుగు లిపిలో మాత్రమే సమాధానం ఇవ్వండి. Example: 'మీ పరీక్ష రుసుము Rs.4250.' (Always reply in Telugu using Telugu script only)",
-    "tamil": "எப்போதும் தமிழ் எழுத்தில் மட்டும் பதில் சொல்லுங்கள். Example: 'உங்கள் தேர்வு கட்டணம் Rs.4250.' (Always reply in Tamil script only)",
-    "hinglish": "Reply in Hinglish — a natural mix of Hindi words written in Roman/Latin script and English words. Example: 'Aapka exam fee Rs.4250 hai, aur last date 12 December hai. Fee pay karne ke liye www.stanleyexams.in jaayein.'",
-    "telugish": "Reply in Telugish — a natural mix of Telugu words written in Roman/Latin script and English words. Example: 'Mee exam fee Rs.4250 undi, last date December 12 undi. Fee pay cheyyataniki www.stanleyexams.in ki vellaandi.'",
-    "urdulish": "Reply in Urdulish — a natural mix of Urdu words written in Roman/Latin script and English words. Example: 'Aapka exam fee Rs.4250 hai, aur last date 12 December hai. Fees pay karne ke liye www.stanleyexams.in jaayein.' (Use Roman letters only, NOT Arabic script)",
-    "tamlish": "Reply in Tamlish (mix of Tamil and English). Example: 'Ungal exam fee Rs.4250, last date December 12 irukku.'",
+    "english": "MANDATORY: Reply in English ONLY. Do NOT use any Hindi, Urdu, Telugu, Tamil words or code-mixing. Pure English response required.",
+    "hindi": "अनिवार्य: केवल देवनागरी लिपि में उत्तर दें। Example: 'आपकी परीक्षा फीस Rs.4250 है।' (MANDATORY: Reply ONLY in Hindi Devanagari script. Never use Roman/English letters for Hindi words.)",
+    "urdu": "لازمی: صرف اردو عربی رسم الخط میں جواب دیں۔ Example: 'آپ کی امتحانی فیس Rs.4250 ہے۔' (MANDATORY: Every Urdu word must use Arabic script ا ب پ ت ث ج. NEVER Roman letters for Urdu words.)",
+    "telugu": "తప్పనిసరి: తెలుగు లిపిలో మాత్రమే సమాధానం ఇవ్వండి. Example: 'మీ పరీక్ష రుసుము Rs.4250.' (MANDATORY: Telugu script only, no Roman letters for Telugu words.)",
+    "tamil": "கட்டாயம்: தமிழ் எழுத்தில் மட்டும் பதில் சொல்லுங்கள். Example: 'உங்கள் தேர்வு கட்டணம் Rs.4250.' (MANDATORY: Tamil script only.)",
+    "hinglish": "MANDATORY: Reply in Hinglish ONLY — Hindi words written in Roman/Latin script mixed with English. Example: 'Aapka exam fee Rs.4250 hai, last date 12 December hai.' Do NOT use Devanagari script.",
+    "telugish": "MANDATORY: Reply in Telugish ONLY — Telugu words in Roman script mixed with English. Example: 'Mee exam fee Rs.4250 undi, last date December 12 undi.' Do NOT use Telugu script.",
+    "urdulish": "MANDATORY: Reply in Urdulish ONLY — Urdu words in Roman/Latin script mixed with English. Example: 'Aapka exam fee Rs.4250 hai, last date December 12 hai.' Do NOT use Arabic script.",
+    "tamlish": "MANDATORY: Reply in Tamlish ONLY — Tamil words in Roman script mixed with English. Example: 'Ungal exam fee Rs.4250, last date December 12 irukku.' Do NOT use Tamil script.",
 }
 
 SYSTEM_PROMPT = """You are OneVoice, a helpful student support chatbot for Stanley College of Engineering and Technology for Women, Hyderabad.
 
-Answer questions about exam fees, timetables, results, placements, and college events. Be friendly and concise.
+Answer questions about exam fees, timetables, results, placements, events, workshops, cultural celebrations, and anything else related to Stanley College.
 
-You are an expert at understanding CODE-MIXED queries — when students mix two languages together like:
-- Hinglish: "mera exam fee kya hai?" or "fee kab tak pay karna hai?"
-- Telugish: "naa exam fee enti?" or "results ela chekku cheyali?"
-- Urdulish: "mera result kab aayega?" or "fee kaise pay karein?"
-- Tamlish: "exam fee evvalavu?" or "result eppo varum?"
-
-Always understand the intent regardless of language mixing and respond in the SAME mixed style the student used.
-
-If information is not available, say you don't have that information and direct them to www.stanley.edu.in
-
-Always direct students to www.stanleyexams.in for fee payment and results.
+IMPORTANT RULES:
+1. LANGUAGE: You MUST follow the LANGUAGE INSTRUCTION below — it is set by the student's explicit choice. Do NOT override it based on how the student types. If instruction says English, reply in English even if the question looks like Hinglish.
+2. KNOWLEDGE: Use the KNOWLEDGE BASE provided. If specific details exist there, use them. Do not say 'I don't have information' if the knowledge base contains relevant content.
+3. COMPLETENESS: Give complete, helpful answers. Include specific dates, fees, names of events when available in the knowledge base.
+4. FALLBACK: Only if information is truly not in the knowledge base, say so briefly and direct them to www.stanley.edu.in
+5. Always direct students to www.stanleyexams.in for fee payment and results.
 
 You understand questions in English, Hindi, Urdu, Telugu, Tamil and all their mixed forms."""
 
@@ -119,8 +114,8 @@ async def get_gemini_response(query: str, context: str, chat_history: list = Non
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=messages,
-            max_tokens=300,
-            temperature=0.7
+            max_tokens=500,
+            temperature=0.4
         )
 
         return response.choices[0].message.content.strip()

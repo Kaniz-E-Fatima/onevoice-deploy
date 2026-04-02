@@ -55,47 +55,70 @@ def detect_intent(query: str) -> str:
             return intent
     return "general"
 
-async def get_context_from_db(intent: str) -> str:
+async def get_context_from_db(intent: str, query: str = "") -> str:
     try:
         db = get_db()
         if db is None:
             return ""
 
-        if intent == "general":
-            # ✅ Get all txt files first (most useful), then PDFs
-            docs = await db.knowledge_base.find(
-                {"file_type": "txt"}
-            ).to_list(length=10)
-            if not docs:
-                docs = await db.knowledge_base.find({}).to_list(length=20)
-        else:
-            # ✅ First try exact filename match
+        docs = []
+
+        # ── Step 1: Query-keyword content search (works for ALL intents) ──
+        # Extract meaningful words from the user query and search PDF/TXT content
+        if query:
+            stop_words = {"what", "when", "where", "how", "why", "who", "is", "are",
+                          "was", "the", "a", "an", "in", "at", "of", "for", "me",
+                          "tell", "about", "any", "do", "i", "my", "can", "give",
+                          "there", "college", "stanley", "please"}
+            keywords = [
+                w for w in query.lower().split()
+                if len(w) > 3 and w not in stop_words
+            ]
+            if keywords:
+                content_filter = {
+                    "$or": [
+                        {"content": {"$regex": kw, "$options": "i"}}
+                        for kw in keywords[:5]  # limit to 5 keywords
+                    ]
+                }
+                docs = await db.knowledge_base.find(content_filter).to_list(length=6)
+
+        # ── Step 2: Intent-based exact filename match ──
+        if not docs and intent != "general":
             target_file = INTENT_FILENAMES.get(intent)
             if target_file:
                 docs = await db.knowledge_base.find(
                     {"filename": target_file}
                 ).to_list(length=1)
-            else:
-                docs = []
 
-            # ✅ Fallback: search by filename keywords
-            if not docs:
-                keywords = intent.replace("_", " ").split()
-                query_filter = {
-                    "$or": [
-                        {"filename": {"$regex": kw, "$options": "i"}}
-                        for kw in keywords
-                    ]
-                }
-                docs = await db.knowledge_base.find(query_filter).to_list(length=5)
+        # ── Step 3: Intent keyword filename search ──
+        if not docs and intent != "general":
+            keywords = intent.replace("_", " ").split()
+            query_filter = {
+                "$or": [
+                    {"filename": {"$regex": kw, "$options": "i"}}
+                    for kw in keywords
+                ]
+            }
+            docs = await db.knowledge_base.find(query_filter).to_list(length=5)
 
-            # ✅ Final fallback: get all txt files
-            if not docs:
-                docs = await db.knowledge_base.find(
-                    {"file_type": "txt"}
-                ).to_list(length=10)
+        # ── Step 4: Fallback — all txt files ──
+        if not docs:
+            docs = await db.knowledge_base.find(
+                {"file_type": "txt"}
+            ).to_list(length=10)
 
-        contents = [d.get("content", "") for d in docs if d.get("content", "").strip()]
+        # ── Step 5: Last resort — any docs at all ──
+        if not docs:
+            docs = await db.knowledge_base.find({}).to_list(length=10)
+
+        # Trim content to avoid exceeding context window
+        contents = []
+        for d in docs:
+            c = d.get("content", "")
+            if c.strip():
+                contents.append(c[:3000])  # max 3000 chars per doc
+
         return "\n\n".join(contents)
 
     except Exception as e:
@@ -122,7 +145,7 @@ def get_context_from_files(intent: str) -> str:
 
 async def get_context(query: str):
     intent = detect_intent(query)
-    context = await get_context_from_db(intent)
+    context = await get_context_from_db(intent, query)
     if not context.strip():
         print("MongoDB empty, falling back to local files")
         context = get_context_from_files(intent)
