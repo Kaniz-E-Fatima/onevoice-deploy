@@ -1,6 +1,21 @@
 STANLEY COLLEGE - EVENTS, ANNOUNCEMENTS & NOTIFICATIONS
 
+=== CULTURAL CELEBRATIONS ===
+
+Holi Celebrations at Stanley College
+Stanley College of Engineering and Technology for Women celebrated Holi, the festival of colours, with great enthusiasm and joy. The Holi celebrations were organised on the college campus bringing together students, faculty, and staff. The event featured traditional colour play, cultural performances, dance, and music. The celebration reflected the vibrant and inclusive culture of Stanley College, embracing all festivals. Students participated enthusiastically in the Holi festivities organised by the college.
+
+International Women's Day Celebrations
+Stanley College celebrated International Women's Day with a grand event on campus. The celebrations highlighted the achievements of women in engineering and technology. The event featured inspiring talks, cultural performances, and recognition of outstanding women students and faculty. International Women's Day is observed every year on 8th March. The college organised special programmes to honour and empower women in STEM fields.
+
+The Grace Gala '26 – A Tribute to Talent & Womanhood
+Stanley College organised The Grace Gala 2026, a grand celebration dedicated to talent and womanhood. This special event celebrated the accomplishments, creativity, and spirit of the women of Stanley College. The Grace Gala featured cultural performances, talent showcases, music, dance, and a tribute to the outstanding women of the institution. It was a memorable event bringing together the entire college community.
+
+Graduation Day and Alumni Meet 2026
+Stanley College is organising the Graduation Day and Alumni Meet on 4th April 2026. The Graduation Day ceremony will celebrate the academic achievements of graduating students. The Alumni Meet brings together former students of Stanley College to reconnect, network, and celebrate their shared journey. Registration for the Alumni Meet is open. Students and alumni are invited to participate. For registration details, contact the college at www.stanley.edu.in or visit the college office.
+
 === CONFERENCES ===
+
 ICATDM-2026: International Conference on Advanced Technologies for Disaster Management
 Organizers: Dept. of ECE & EEE, Stanley College | Sponsored by: AICTE
 Dates: 16-17 May 2026
@@ -12,12 +27,29 @@ Email: icatdm@stanley.edu.in
 Registration: https://forms.gle/11Ab8wHTtNp3BN3H6
 Bank: SBI | Account No: 62435317004 | IFSC: SBIN0020066 | Branch: Gunfoundry
 
+Chevening Conversations on Cyber Security
+Stanley College hosted the Chevening Conversations on Cyber Security, an interactive session on cyber security in collaboration with the Chevening programme. The event brought together experts and students to discuss the latest developments in cybersecurity, online safety, and digital threats. This was a prestigious event connecting Stanley College with global conversations on technology and security.
+
+=== HACKATHONS ===
+
+GenAI Forge Hackathon
+Stanley College participated in / organised the GenAI Forge Hackathon, a hackathon focused on Generative Artificial Intelligence. Students competed in building innovative AI solutions using generative AI technologies. The GenAI Forge Hackathon provided students with hands-on experience in cutting-edge AI tools and platforms. Participants presented their projects to a panel of judges. The hackathon was an exciting opportunity for students to showcase their technical skills and creativity in the field of AI.
+
 === WORKSHOPS & BOOTCAMPS ===
+
+3D Printing Workshop
+Stanley College organised a 3D Printing Workshop for students. The workshop provided hands-on training in 3D printing technology, covering design, modelling, and printing techniques. Students learned to use 3D printers and create prototypes. The workshop was organised to expose students to emerging manufacturing and prototyping technologies relevant to engineering careers.
+
 One Week Bootcamp on Drone Technologies: 08-12 September 2025
 Organizer: Department of CSE in association with NIELIT, Aurangabad
+A five-day intensive bootcamp covering drone design, programming, operations, and applications. Students received hands-on training in drone technology and its real-world applications in agriculture, surveillance, and delivery systems.
 
 One Week Bootcamp on Internet of Things (IoT): 08-12 September 2025
 Organizer: Department of CSE in association with NIELIT, Aurangabad
+A five-day bootcamp on IoT covering sensors, microcontrollers, connectivity, and IoT applications. Students built real IoT projects during the bootcamp.
+
+Entrepreneurship Awareness Program at SCETW
+Stanley College Engineering and Technology for Women (SCETW) organised an Entrepreneurship Awareness Program on campus. The program aimed to inspire students to explore entrepreneurship as a career path. It featured talks by successful entrepreneurs, sessions on startup ecosystems, business planning, and innovation. The program encouraged students to think beyond traditional employment and build their own ventures.
 
 === HOLIDAYS ===
 Vinayaka Chavithi: 27 August 2025 declared holiday. Circular No. 19/STLW/Admin/2025
