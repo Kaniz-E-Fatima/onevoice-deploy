@@ -114,16 +114,22 @@ async def get_context_from_db(intent: str, query: str = "") -> str:
 
         # Trim content to avoid exceeding context window
         contents = []
+        pdf_filenames = []
         for d in docs:
             c = d.get("content", "")
+            fname = d.get("filename", "")
             if c.strip():
                 contents.append(c[:3000])  # max 3000 chars per doc
+            # Collect only PDF filenames for reference links
+            if fname and fname.lower().endswith(".pdf"):
+                if fname not in pdf_filenames:
+                    pdf_filenames.append(fname)
 
-        return "\n\n".join(contents)
+        return "\n\n".join(contents), pdf_filenames
 
     except Exception as e:
         print(f"DB context error: {e}")
-        return ""
+        return "", []
 
 def get_context_from_files(intent: str) -> str:
     try:
@@ -145,8 +151,9 @@ def get_context_from_files(intent: str) -> str:
 
 async def get_context(query: str):
     intent = detect_intent(query)
-    context = await get_context_from_db(intent, query)
+    context, pdf_filenames = await get_context_from_db(intent, query)
     if not context.strip():
         print("MongoDB empty, falling back to local files")
         context = get_context_from_files(intent)
-    return context, intent
+        pdf_filenames = []  # no PDF references available from local files
+    return context, intent, pdf_filenames

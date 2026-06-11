@@ -52,7 +52,7 @@ async def chat(request: ChatRequest):
     user_email = get_user_from_token(request.token)
     now = datetime.utcnow()
 
-    context, intent = await get_context(request.message)
+    context, intent, related_pdfs = await get_context(request.message)
 
     session = await db.chat_sessions.find_one({"session_id": session_id})
     chat_history = session.get("messages", []) if session else []
@@ -114,7 +114,8 @@ async def chat(request: ChatRequest):
         "session_id": session_id,
         "intent": intent,
         "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"]),
-        "bot_message_db_index": len(chat_history) + 1
+        "bot_message_db_index": len(chat_history) + 1,
+        "related_pdfs": related_pdfs
     }
 
 

@@ -226,7 +226,8 @@ export default function ChatWidget() {
           role: 'assistant',
           content: finalText,
           showFeedback: true,
-          dbIndex: data.bot_message_db_index
+          dbIndex: data.bot_message_db_index,
+          relatedPdfs: data.related_pdfs || []
         }])
         if (voiceOutput) setTimeout(() => speakText(finalText, language), 150)
         if (data.suggestions && data.suggestions.length > 0) {

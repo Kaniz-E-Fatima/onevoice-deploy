@@ -118,6 +118,45 @@ export default function ChatMessages({ messages, loading, onFeedback, typingText
               <SpeakButton text={msg.content} language={language || 'english'} />
             )}
           </div>
+          {msg.role !== 'user' && msg.relatedPdfs && msg.relatedPdfs.length > 0 && (
+            <div style={{
+              marginTop: 6,
+              marginBottom: 2,
+              padding: '8px 10px',
+              background: 'rgba(139,0,0,0.06)',
+              borderLeft: '3px solid #8B0000',
+              borderRadius: '0 8px 8px 0',
+              maxWidth: 320
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#8B0000', marginBottom: 4, letterSpacing: 0.3 }}>
+                📄 Related Documents
+              </div>
+              {msg.relatedPdfs.map((pdf, pi) => (
+                <a
+                  key={pi}
+                  href={`${import.meta.env.VITE_API_URL || '/api'}/pdfs/download/${encodeURIComponent(pdf)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    fontSize: 11.5,
+                    color: '#8B0000',
+                    textDecoration: 'none',
+                    padding: '3px 0',
+                    wordBreak: 'break-word',
+                    transition: 'opacity 0.15s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                >
+                  <span style={{ flexShrink: 0 }}>📎</span>
+                  <span>{pdf}</span>
+                </a>
+              ))}
+            </div>
+          )}
           {msg.showFeedback && (
             <div className="feedback-row">
               <button className="feedback-btn" onClick={() => onFeedback(i, 'up')}>👍 Helpful</button>

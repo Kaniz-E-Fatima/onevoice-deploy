@@ -183,3 +183,27 @@ async def get_feedback(x_admin_key: str = Header(None)):
         "thumbs_down": thumbs_down,
         "satisfaction_rate": satisfaction
     }
+
+
+# ── Public PDF download endpoint (no auth required) ────────────────────────────
+from fastapi import Path as FPath
+from fastapi.responses import FileResponse
+import urllib.parse
+
+@router.get("/pdfs/download/{filename:path}")
+async def download_pdf(filename: str):
+    """Serve a PDF file from the data folder. Accessible without auth so students can open documents."""
+    # Decode URL-encoded filename
+    decoded_name = urllib.parse.unquote(filename)
+    # Security: prevent directory traversal
+    safe_name = os.path.basename(decoded_name)
+    file_path = os.path.join(DATA_DIR, safe_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail=f"File '{safe_name}' not found")
+    media_type = "application/pdf" if safe_name.lower().endswith(".pdf") else "text/plain"
+    return FileResponse(
+        path=file_path,
+        media_type=media_type,
+        filename=safe_name,
+        headers={"Content-Disposition": f"inline; filename=\"{safe_name}\""}
+    )
