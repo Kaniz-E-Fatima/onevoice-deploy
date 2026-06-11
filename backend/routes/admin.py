@@ -105,6 +105,17 @@ async def upload_pdf(
         size_kb=size_kb
     )
     await db.knowledge_base.insert_one(doc_data)
+
+    # Also store raw bytes so the download endpoint can serve the file from MongoDB
+    if file.filename.endswith(".pdf"):
+        await db.pdf_files.delete_many({"filename": file.filename})
+        await db.pdf_files.insert_one({
+            "filename": file.filename,
+            "data": content_bytes,
+            "size_kb": size_kb,
+            "uploaded_at": __import__('datetime').datetime.utcnow()
+        })
+
     return {"message": f"{file.filename} uploaded successfully", "filename": file.filename}
 
 # ✅ Delete PDF from MongoDB
@@ -113,6 +124,7 @@ async def delete_pdf(filename: str, x_admin_key: str = Header(None)):
     verify_admin(x_admin_key)
     db = get_db()
     result = await db.knowledge_base.delete_many({"filename": filename})
+    await db.pdf_files.delete_many({"filename": filename})  # also remove binary
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="File not found")
     return {"message": f"{filename} deleted successfully"}
@@ -192,18 +204,33 @@ import urllib.parse
 
 @router.get("/pdfs/download/{filename:path}")
 async def download_pdf(filename: str):
-    """Serve a PDF file from the data folder. Accessible without auth so students can open documents."""
-    # Decode URL-encoded filename
+    """Serve a PDF from MongoDB pdf_files collection. Works on Render (no local disk needed)."""
     decoded_name = urllib.parse.unquote(filename)
-    # Security: prevent directory traversal
     safe_name = os.path.basename(decoded_name)
-    file_path = os.path.join(DATA_DIR, safe_name)
-    if not os.path.exists(file_path):
+
+    db = get_db()
+    record = await db.pdf_files.find_one({"filename": safe_name})
+
+    if not record or not record.get("data"):
+        # Fallback: try local disk (works in local dev)
+        local_path = os.path.join(DATA_DIR, safe_name)
+        if os.path.exists(local_path):
+            media_type = "application/pdf" if safe_name.lower().endswith(".pdf") else "text/plain"
+            return FileResponse(
+                path=local_path,
+                media_type=media_type,
+                filename=safe_name,
+                headers={"Content-Disposition": f"inline; filename=\"{safe_name}\""}
+            )
         raise HTTPException(status_code=404, detail=f"File '{safe_name}' not found")
+
+    pdf_bytes = bytes(record["data"])
     media_type = "application/pdf" if safe_name.lower().endswith(".pdf") else "text/plain"
-    return FileResponse(
-        path=file_path,
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
         media_type=media_type,
-        filename=safe_name,
-        headers={"Content-Disposition": f"inline; filename=\"{safe_name}\""}
+        headers={
+            "Content-Disposition": f"inline; filename=\"{safe_name}\"",
+            "Content-Length": str(len(pdf_bytes))
+        }
     )

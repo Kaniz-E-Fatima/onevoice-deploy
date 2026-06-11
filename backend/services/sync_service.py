@@ -37,6 +37,15 @@ def _extract_text(filepath: str, filename: str) -> str:
             return ""
 
 
+def _read_bytes(filepath: str) -> bytes:
+    """Read raw file bytes for binary storage."""
+    try:
+        with open(filepath, "rb") as f:
+            return f.read()
+    except Exception:
+        return b""
+
+
 async def sync_data_folder() -> dict:
     """
     Scan the data/ directory and upsert every supported file into MongoDB.
@@ -72,6 +81,18 @@ async def sync_data_folder() -> dict:
                 {"_id": 1}
             )
             if existing:
+                # Also ensure binary is stored even if text was already synced
+                if filename.lower().endswith(".pdf"):
+                    binary_exists = await db.pdf_files.find_one({"filename": filename}, {"_id": 1})
+                    if not binary_exists:
+                        raw_bytes = _read_bytes(filepath)
+                        if raw_bytes:
+                            await db.pdf_files.insert_one({
+                                "filename": filename,
+                                "data": raw_bytes,
+                                "size_kb": size_kb,
+                                "uploaded_at": datetime.utcnow()
+                            })
                 skipped += 1
                 continue
 
@@ -92,6 +113,20 @@ async def sync_data_folder() -> dict:
             # Upsert: replace old entry if filename exists but size changed
             await db.knowledge_base.delete_many({"filename": filename})
             await db.knowledge_base.insert_one(doc_data)
+
+            # Also store raw bytes in pdf_files collection (for download endpoint)
+            # This works on Render/cloud where disk is ephemeral — bytes live in MongoDB
+            if filename.lower().endswith(".pdf"):
+                raw_bytes = _read_bytes(filepath)
+                if raw_bytes:
+                    await db.pdf_files.delete_many({"filename": filename})
+                    await db.pdf_files.insert_one({
+                        "filename": filename,
+                        "data": raw_bytes,
+                        "size_kb": size_kb,
+                        "uploaded_at": datetime.utcnow()
+                    })
+
             synced += 1
             print(f"  ✅ Synced: {filename} ({size_kb} KB)")
 
