@@ -7,17 +7,14 @@ import { sendFeedback } from '../services/api'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
-const LANGUAGES_NATIVE = [
+const LANGUAGES = [
   { code: 'english', label: 'EN' },
   { code: 'hindi', label: 'हि' },
   { code: 'urdu', label: 'اردو' },
+  { code: 'urdulish', label: 'Urdulish' },
   { code: 'telugu', label: 'తె' },
   { code: 'tamil', label: 'த' },
-]
-
-const LANGUAGES_MIXED = [
   { code: 'hinglish', label: 'Hinglish' },
-  { code: 'urdulish', label: 'Urdulish' },
   { code: 'telugish', label: 'Telugish' },
 ]
 
@@ -229,8 +226,7 @@ export default function ChatWidget() {
           role: 'assistant',
           content: finalText,
           showFeedback: true,
-          dbIndex: data.bot_message_db_index,
-          relatedPdfs: data.related_pdfs || []
+          dbIndex: data.bot_message_db_index
         }])
         if (voiceOutput) setTimeout(() => speakText(finalText, language), 150)
         if (data.suggestions && data.suggestions.length > 0) {
@@ -327,25 +323,13 @@ export default function ChatWidget() {
               </div>
             </div>
             <div className="lang-selector">
-              <div className="lang-row">
-                {LANGUAGES_NATIVE.map(lang => (
-                  <button
-                    key={lang.code}
-                    className={`lang-btn ${language === lang.code ? 'active' : ''}`}
-                    onClick={() => handleLanguageChange(lang.code)}
-                  >{lang.label}</button>
-                ))}
-              </div>
-              <div className="lang-row lang-row-mixed">
-                <span className="lang-mix-label">Mix:</span>
-                {LANGUAGES_MIXED.map(lang => (
-                  <button
-                    key={lang.code}
-                    className={`lang-btn lang-btn-mixed ${language === lang.code ? 'active' : ''}`}
-                    onClick={() => handleLanguageChange(lang.code)}
-                  >{lang.label}</button>
-                ))}
-              </div>
+              {LANGUAGES.map(lang => (
+                <button
+                  key={lang.code}
+                  className={`lang-btn ${language === lang.code ? 'active' : ''}`}
+                  onClick={() => handleLanguageChange(lang.code)}
+                >{lang.label}</button>
+              ))}
             </div>
           </div>
 

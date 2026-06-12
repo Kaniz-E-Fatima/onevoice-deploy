@@ -48,16 +48,6 @@ INTENT_FILENAMES = {
     "events": "events.txt"
 }
 
-# Words too generic to be useful for filename matching
-PDF_STOP_WORDS = {
-    "what", "when", "where", "how", "why", "who", "is", "are", "was",
-    "the", "a", "an", "in", "at", "of", "for", "me", "tell", "about",
-    "any", "do", "i", "my", "can", "give", "there", "college", "stanley",
-    "please", "and", "or", "to", "that", "this", "with", "from", "on",
-    "have", "has", "had", "been", "will", "would", "could", "should",
-    "event", "events", "information", "info", "details", "know",
-}
-
 def detect_intent(query: str) -> str:
     query_lower = query.lower()
     for keyword, intent in KEYWORD_INTENT.items():
@@ -65,58 +55,16 @@ def detect_intent(query: str) -> str:
             return intent
     return "general"
 
-
-async def get_relevant_pdf_links(query: str) -> list:
-    """
-    Separately search PDF filenames that are relevant to the user's query.
-    This gives accurate, query-specific PDF links rather than whatever docs
-    happened to be pulled for context.
-    """
+async def get_context_from_db(intent: str, query: str = "") -> str:
     try:
         db = get_db()
         if db is None:
-            return []
-
-        # Extract meaningful keywords from the query (min 3 chars, not stop words)
-        keywords = [
-            w for w in query.lower().split()
-            if len(w) >= 3 and w not in PDF_STOP_WORDS
-        ]
-
-        if not keywords:
-            return []
-
-        # Search PDF filenames in knowledge_base for these keywords
-        filename_filter = {
-            "$and": [
-                {"file_type": "pdf"},
-                {"$or": [
-                    {"filename": {"$regex": kw, "$options": "i"}}
-                    for kw in keywords[:6]
-                ]}
-            ]
-        }
-        docs = await db.knowledge_base.find(
-            filename_filter,
-            {"filename": 1}
-        ).to_list(length=4)
-
-        return [d["filename"] for d in docs if d.get("filename")]
-
-    except Exception as e:
-        print(f"PDF link search error: {e}")
-        return []
-
-
-async def get_context_from_db(intent: str, query: str = "") -> tuple:
-    try:
-        db = get_db()
-        if db is None:
-            return "", []
+            return ""
 
         docs = []
 
         # ── Step 1: Query-keyword content search (works for ALL intents) ──
+        # Extract meaningful words from the user query and search PDF/TXT content
         if query:
             stop_words = {"what", "when", "where", "how", "why", "who", "is", "are",
                           "was", "the", "a", "an", "in", "at", "of", "for", "me",
@@ -130,7 +78,7 @@ async def get_context_from_db(intent: str, query: str = "") -> tuple:
                 content_filter = {
                     "$or": [
                         {"content": {"$regex": kw, "$options": "i"}}
-                        for kw in keywords[:5]
+                        for kw in keywords[:5]  # limit to 5 keywords
                     ]
                 }
                 docs = await db.knowledge_base.find(content_filter).to_list(length=6)
@@ -164,23 +112,18 @@ async def get_context_from_db(intent: str, query: str = "") -> tuple:
         if not docs:
             docs = await db.knowledge_base.find({}).to_list(length=10)
 
-        # Build context text and collect PDF links from retrieved docs
+        # Trim content to avoid exceeding context window
         contents = []
-        pdf_filenames = []
         for d in docs:
             c = d.get("content", "")
-            fname = d.get("filename", "")
             if c.strip():
-                contents.append(c[:3000])
-            if fname and fname.lower().endswith(".pdf") and fname not in pdf_filenames:
-                pdf_filenames.append(fname)
+                contents.append(c[:3000])  # max 3000 chars per doc
 
-        return "\n\n".join(contents), pdf_filenames
+        return "\n\n".join(contents)
 
     except Exception as e:
         print(f"DB context error: {e}")
-        return "", []
-
+        return ""
 
 def get_context_from_files(intent: str) -> str:
     try:
@@ -200,18 +143,10 @@ def get_context_from_files(intent: str) -> str:
         print(f"File context error: {e}")
         return ""
 
-
 async def get_context(query: str):
     intent = detect_intent(query)
-    context, pdf_filenames = await get_context_from_db(intent, query)
+    context = await get_context_from_db(intent, query)
     if not context.strip():
         print("MongoDB empty, falling back to local files")
         context = get_context_from_files(intent)
-
-    # Add any direct filename matches to the top of the list
-    direct_pdfs = await get_relevant_pdf_links(query)
-    for pdf in pdf_filenames:
-        if pdf not in direct_pdfs:
-            direct_pdfs.append(pdf)
-
-    return context, intent, direct_pdfs
+    return context, intent

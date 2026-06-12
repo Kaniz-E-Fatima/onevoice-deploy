@@ -279,45 +279,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Two-row language layout */
-.lang-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.lang-row {
-  display: flex;
-  gap: 5px;
-  flex-wrap: nowrap;
-  align-items: center;
-}
-
-.lang-row-mixed {
-  padding-top: 3px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.lang-mix-label {
-  font-size: 9px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.lang-btn-mixed {
-  padding: 2px 9px;
-  font-size: 10px;
-  opacity: 0.85;
-}
-
-.lang-btn-mixed.active {
-  opacity: 1;
-}
-
 /* ── Messages ───────────────────────────────────────────────────────────── */
 .chat-messages {
   flex: 1;

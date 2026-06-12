@@ -52,14 +52,24 @@ async def chat(request: ChatRequest):
     user_email = get_user_from_token(request.token)
     now = datetime.utcnow()
 
-    context, intent, related_pdfs = await get_context(request.message)
+    context, intent = await get_context(request.message)
 
     session = await db.chat_sessions.find_one({"session_id": session_id})
     chat_history = session.get("messages", []) if session else []
 
+    context_summary = ""
+    if len(chat_history) > 0:
+        context_summary = "\n\nPREVIOUS CONVERSATION SUMMARY:\n"
+        for msg in chat_history[-10:]:
+            if isinstance(msg, dict):
+                role = "Student" if msg.get("role") == "user" else "OneVoice"
+                content = msg.get("content", "")
+                if isinstance(content, str) and content.strip():
+                    context_summary += f"{role}: {content[:200]}\n"
+
     reply = await get_gemini_response(
         query=request.message,
-        context=context,
+        context=context + context_summary,
         chat_history=chat_history,
         language=request.language
     )
@@ -104,8 +114,7 @@ async def chat(request: ChatRequest):
         "session_id": session_id,
         "intent": intent,
         "suggestions": SUGGESTIONS.get(intent, SUGGESTIONS["general"]),
-        "bot_message_db_index": len(chat_history) + 1,
-        "related_pdfs": related_pdfs
+        "bot_message_db_index": len(chat_history) + 1
     }
 
 

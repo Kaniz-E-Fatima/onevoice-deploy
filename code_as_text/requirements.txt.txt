@@ -1,0 +1,13 @@
+﻿fastapi
+uvicorn[standard]
+motor
+python-dotenv
+groq
+pydantic
+pymupdf
+pypdf
+httpx
+google-auth
+google-auth-oauthlib
+python-jose[cryptography]
+python-multipart
