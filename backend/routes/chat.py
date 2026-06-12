@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from services.gemini_service import get_gemini_response
+from services.groq_service import get_gemini_response
 from services.rag_service import get_context
 from database.connection import get_db
 import uuid
