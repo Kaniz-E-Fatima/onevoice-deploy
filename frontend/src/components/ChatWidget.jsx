@@ -310,11 +310,7 @@ export default function ChatWidget() {
                 </div>
               </div>
               <div className="header-actions">
-                <button
-                  className={`icon-btn ${voiceOutput ? 'active' : ''} ${isSpeaking ? 'speaking' : ''}`}
-                  onClick={handleVoiceToggle}
-                  title={isSpeaking ? 'Stop speaking' : voiceOutput ? 'Voice ON' : 'Voice OFF'}
-                >{isSpeaking ? '⏹' : '🔊'}</button>
+
                 <button className="icon-btn" onClick={() => setShowHistory(h => !h)} title="History">📋</button>
                 <button className="icon-btn" onClick={() => setDarkMode(d => !d)}>
                   {darkMode ? '☀️' : '🌙'}
