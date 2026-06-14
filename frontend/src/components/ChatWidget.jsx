@@ -29,22 +29,30 @@ const SUGGESTIONS = [
   'Events 🎉',
 ]
 
-function getGreeting() {
-  const hour = new Date().getHours()
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+
+const GREETINGS = {
+  english:  ['Good morning',    'Good afternoon',    'Good evening'],
+  hindi:    ['सुप्रभात',         'शुभ दोपहर',          'शुभ संध्या'],
+  urdu:     ['صبح بخیر',         'خیر دوپہر',           'شام بخیر'],
+  telugu:   ['శుభోదయం',          'శుభ మధ్యాహ్నం',       'శుభ సాయంత్రం'],
+  tamil:    ['காலை வணக்கம்',     'மதிய வணக்கம்',       'மாலை வணக்கம்'],
 }
 
-const WELCOME_MESSAGES = {
-  english: `Hi! I'm OneVoice, your digital assistant for Stanley College. Feel free to ask me anything!`,
-  hindi: `नमस्ते! मैं OneVoice हूँ, Stanley College का डिजिटल असिस्टेंट। कुछ भी पूछें!`,
-  urdu: `ہیلو! میں OneVoice ہوں، Stanley College کا ڈیجیٹل اسسٹنٹ۔ کچھ بھی پوچھیں!`,
-  urdulish: `Hi! Main OneVoice hoon, Stanley College ka digital assistant. Kuch bhi poochein!`,
-  telugu: `నమస్కారం! నేను OneVoice, Stanley College డిజిటల్ అసిస్టెంట్. ఏమైనా అడగండి!`,
-  telugish: `Hi! Nenu OneVoice, Stanley College digital assistant. Emaina adagandi!`,
-  tamil: `வணக்கம்! நான் OneVoice, Stanley College டிஜிட்டல் உதவியாளர். எதுவும் கேளுங்கள்!`,
-  hinglish: `Hi! Main OneVoice hoon, Stanley College ka digital assistant. Kuch bhi poochein!`,
+function getWelcomeMessage(lang) {
+  const hour = new Date().getHours()
+  const slot = hour < 12 ? 0 : hour < 17 ? 1 : 2
+  const g = (GREETINGS[lang] || GREETINGS.english)[slot]
+  const msgs = {
+    english:  `${g}! I'm OneVoice, your digital assistant for Stanley College. Feel free to ask me anything!`,
+    hindi:    `${g}! मैं OneVoice हूँ, Stanley College का डिजिटल असिस्टेंट। कुछ भी पूछें!`,
+    urdu:     `${g}! میں OneVoice ہوں، Stanley College کا ڈیجیٹل اسسٹنٹ۔ کچھ بھی پوچھیں!`,
+    urdulish: `${GREETINGS.english[slot]}! Main OneVoice hoon, Stanley College ka digital assistant. Kuch bhi poochein!`,
+    telugu:   `${g}! నేను OneVoice, Stanley College డిజిటల్ అసిస్టెంట్. ఏమైనా అడగండి!`,
+    telugish: `${GREETINGS.english[slot]}! Nenu OneVoice, Stanley College digital assistant. Emaina adagandi!`,
+    tamil:    `${g}! நான் OneVoice, Stanley College டிஜிட்டல் உதவியாளர். எதுவும் கேளுங்கள்!`,
+    hinglish: `${GREETINGS.english[slot]}! Main OneVoice hoon, Stanley College ka digital assistant. Kuch bhi poochein!`,
+  }
+  return msgs[lang] || msgs.english
 }
 
 const STORAGE_KEY = 'onevoice_chat_history'
@@ -124,8 +132,8 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : [{ role: 'assistant', content: WELCOME_MESSAGES['english'] }]
-    } catch { return [{ role: 'assistant', content: WELCOME_MESSAGES['english'] }] }
+      return saved ? JSON.parse(saved) : [{ role: 'assistant', content: getWelcomeMessage('english') }]
+    } catch { return [{ role: 'assistant', content: getWelcomeMessage('english') }] }
   })
   const [sessionId, setSessionId] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -288,7 +296,7 @@ export default function ChatWidget() {
 
   const clearHistory = () => {
     stopSpeech()
-    setMessages([{ role: 'assistant', content: WELCOME_MESSAGES[language] }])
+    setMessages([{ role: 'assistant', content: getWelcomeMessage(language) }])
     setSessionId(null)
     setShowSuggestions(true)
     localStorage.removeItem(STORAGE_KEY)
