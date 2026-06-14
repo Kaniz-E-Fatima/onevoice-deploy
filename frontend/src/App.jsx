@@ -15,7 +15,7 @@ export default function App() {
       <header className="home-header">
         <div className="header-inner">
           <div className="header-logo">
-            <img src="/logo.png" alt="Stanley College" className="logo-img" />
+            <img src="/logo.jpeg" alt="Stanley College" className="logo-img" />
             <div>
               <div className="logo-title">Stanley College</div>
               <div className="logo-sub">of Engineering & Technology for Women</div>

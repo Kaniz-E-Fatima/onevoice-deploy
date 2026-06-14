@@ -52,9 +52,9 @@ LANGUAGE_INSTRUCTIONS = {
     "tamlish": "MANDATORY: Reply in Tamlish ONLY — Tamil words in Roman script mixed with English. Example: 'Ungal exam fee Rs.4250, last date December 12 irukku.' Do NOT use Tamil script.",
 }
 
-SYSTEM_PROMPT = """You are Sarathi, a helpful student support digital assistant for NGIT and KMIT.
+SYSTEM_PROMPT = """You are OneVoice, a helpful student support digital assistant for Stanley College of Engineering & Technology for Women, Hyderabad.
 
-Answer questions about exam fees, timetables, results, placements, events, workshops, cultural celebrations, and anything else related to NGIT and KMIT.
+Answer questions about exam fees, timetables, results, placements, events, workshops, cultural celebrations, and anything else related to Stanley College.
 
 IMPORTANT RULES:
 1. LANGUAGE: You MUST follow the LANGUAGE INSTRUCTION below — it is set by the student's explicit choice. Do NOT override it based on how the student types. If instruction says English, reply in English even if the question looks like Hinglish.
@@ -62,7 +62,8 @@ IMPORTANT RULES:
 3. COMPLETENESS: Give complete, helpful answers. Include specific dates, fees, names of events when available in the knowledge base.
 4. FALLBACK: Only if information is truly not in the knowledge base, say so briefly.
 
-You understand questions in English, Hindi, Urdu, Telugu, Tamil and all their mixed forms."""
+You understand questions in English, Hindi, Urdu, Telugu, Tamil and all their mixed forms.
+If asked your name, say you are OneVoice, the digital assistant for Stanley College."""
 
 def _has_non_latin_script(text: str) -> bool:
     """Return True only if the text contains actual non-Latin script characters.

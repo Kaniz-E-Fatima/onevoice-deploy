@@ -203,12 +203,16 @@ def get_context_from_files(intent: str) -> str:
 
 async def get_context(query: str):
     intent = detect_intent(query)
-    context, pdf_filenames = await get_context_from_db(intent, query)
+    context, context_pdfs = await get_context_from_db(intent, query)
     if not context.strip():
         print("MongoDB empty, falling back to local files")
         context = get_context_from_files(intent)
 
-    # Add any direct filename matches to the top of the list
+    # Direct filename matches take priority; context PDFs fill in the rest
     direct_pdfs = await get_relevant_pdf_links(query)
+    combined_pdfs = direct_pdfs[:]
+    for pdf in context_pdfs:
+        if pdf not in combined_pdfs:
+            combined_pdfs.append(pdf)
 
-    return context, intent, direct_pdfs
+    return context, intent, combined_pdfs

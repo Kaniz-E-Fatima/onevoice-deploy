@@ -37,14 +37,14 @@ function getGreeting() {
 }
 
 const WELCOME_MESSAGES = {
-  english: `Hi, this is Sarathi your digital assistant feel free to ask a question about NGIT or KMIT`,
-  hindi: `नमस्ते! मैं Sarathi हूँ, आपका डिजिटल असिस्टेंट। NGIT या KMIT के बारे में कुछ भी पूछें।`,
-  urdu: `ہیلو! میں Sarathi ہوں، آپ کا ڈیجیٹل اسسٹنٹ۔ NGIT یا KMIT کے بارے میں کچھ بھی پوچھیں۔`,
-  urdulish: `Hi! Main Sarathi hoon, aapka digital assistant. NGIT ya KMIT ke baare mein kuch bhi poochein.`,
-  telugu: `నమస్కారం! నేను మీ డిజిటల్ అసిస్టెంట్ Sarathi ని. NGIT లేదా KMIT గురించి ఏమైనా అడగండి.`,
-  telugish: `Hi! Nenu Sarathi, mee digital assistant. NGIT leda KMIT gurinchi emaina adagandi.`,
-  tamil: `வணக்கம்! நான் உங்கள் டிஜிட்டல் உதவியாளர் Sarathi. NGIT அல்லது KMIT பற்றி எதுவும் கேளுங்கள்.`,
-  hinglish: `Hi! Main Sarathi hoon, aapka digital assistant. NGIT ya KMIT ke baare mein kuch bhi poochein.`,
+  english: `Hi! I'm OneVoice, your digital assistant for Stanley College. Feel free to ask me anything!`,
+  hindi: `नमस्ते! मैं OneVoice हूँ, Stanley College का डिजिटल असिस्टेंट। कुछ भी पूछें!`,
+  urdu: `ہیلو! میں OneVoice ہوں، Stanley College کا ڈیجیٹل اسسٹنٹ۔ کچھ بھی پوچھیں!`,
+  urdulish: `Hi! Main OneVoice hoon, Stanley College ka digital assistant. Kuch bhi poochein!`,
+  telugu: `నమస్కారం! నేను OneVoice, Stanley College డిజిటల్ అసిస్టెంట్. ఏమైనా అడగండి!`,
+  telugish: `Hi! Nenu OneVoice, Stanley College digital assistant. Emaina adagandi!`,
+  tamil: `வணக்கம்! நான் OneVoice, Stanley College டிஜிட்டல் உதவியாளர். எதுவும் கேளுங்கள்!`,
+  hinglish: `Hi! Main OneVoice hoon, Stanley College ka digital assistant. Kuch bhi poochein!`,
 }
 
 const STORAGE_KEY = 'onevoice_chat_history'
@@ -135,6 +135,14 @@ export default function ChatWidget() {
   const [showHistory, setShowHistory] = useState(false)
   const wakeTimerRef = useRef(null)
   const [followUpSuggestions, setFollowUpSuggestions] = useState([])
+  const [showPopup, setShowPopup] = useState(false)
+  // ── Show popup bubble after 2s, auto-hide after 8s ───────────────────────
+  useEffect(() => {
+    const show = setTimeout(() => setShowPopup(true), 2000)
+    const hide = setTimeout(() => setShowPopup(false), 8000)
+    return () => { clearTimeout(show); clearTimeout(hide) }
+  }, [])
+
   // ── Wake up backend when widget opens ────────────────────────────────────
   useEffect(() => {
     if (!isOpen) return
@@ -298,11 +306,11 @@ export default function ChatWidget() {
           <div className="chat-header">
             <div className="chat-header-top">
               <div className="chat-header-info">
-                <img src="/logo.jpeg" alt="Sarathi" className="chat-avatar" />
+                <img src="/logo.jpeg" alt="OneVoice" className="chat-avatar" />
                 <div>
-                  <div className="chat-title">Sarathi</div>
+                  <div className="chat-title">OneVoice</div>
                   <div className="chat-subtitle">
-                    NGIT & KMIT · AI Assistant
+                    Stanley College · AI Assistant
                     {backendStatus === 'waking' && (
                       <span className="waking-badge"> · ⏳ Starting up...</span>
                     )}
@@ -405,11 +413,21 @@ export default function ChatWidget() {
         </div>
       )}
 
-      <button className="chat-fab" onClick={() => { setIsOpen(o => !o); if (isOpen) stopSpeech() }}>
+      {!isOpen && showPopup && (
+        <div className="fab-popup" onClick={() => { setIsOpen(true); setShowPopup(false) }}>
+          <span>Ask me anything about Stanley College! 💬</span>
+          <button className="fab-popup-close" onClick={(e) => { e.stopPropagation(); setShowPopup(false) }}>✕</button>
+        </div>
+      )}
+
+      <button className="chat-fab" onClick={() => { setIsOpen(o => !o); setShowPopup(false); if (isOpen) stopSpeech() }}>
         {isOpen ? '✕' : (
-          <div className="fab-text-content">
-            <span className="fab-ask">Ask</span>
-            <span className="fab-brand">OneVoice AI</span>
+          <div className="fab-content">
+            <img src="/logo.jpeg" alt="OneVoice" className="fab-logo" />
+            <div className="fab-text-content">
+              <span className="fab-ask">Ask</span>
+              <span className="fab-brand">OneVoice AI</span>
+            </div>
           </div>
         )}
       </button>
