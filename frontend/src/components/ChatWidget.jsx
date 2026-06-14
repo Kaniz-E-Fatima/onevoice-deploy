@@ -37,14 +37,14 @@ function getGreeting() {
 }
 
 const WELCOME_MESSAGES = {
-  english: `👋 ${getGreeting()}! I'm OneVoice, your Stanley College assistant. Ask me about exam fees, timetables, results, placements, or events!`,
-  hindi: `👋 ${getGreeting()}! मैं OneVoice हूँ, आपका Stanley College सहायक। परीक्षा शुल्क, टाइमटेबल, परिणाम, या प्लेसमेंट के बारे में पूछें!`,
-  urdu: `👋 ${getGreeting()}! میں OneVoice ہوں، آپ کا Stanley College اسسٹنٹ۔ امتحانی فیس، ٹائم ٹیبل، نتائج یا پلیسمنٹ کے بارے میں پوچھیں!`,
-  urdulish: `👋 ${getGreeting()}! Main OneVoice hoon, aapka Stanley College assistant. Exam fees, timetable, results ya placements ke baare mein poochein!`,
-  telugu: `👋 ${getGreeting()}! నేను OneVoice, మీ Stanley College సహాయకుడిని. పరీక్ష రుసుములు, టైమ్‌టేబుల్, ఫలితాలు లేదా ప్లేస్‌మెంట్ గురించి అడగండి!`,
-  telugish: `👋 ${getGreeting()}! Nenu OneVoice, mee Stanley College assistant. Exam fees, timetable, results leda placements gurinchi adagandi!`,
-  tamil: `👋 ${getGreeting()}! நான் OneVoice, உங்கள் Stanley College உதவியாளர். தேர்வு கட்டணம், நேர அட்டவணை, முடிவுகள் அல்லது வேலைவாய்பு பற்றி கேளுங்கள்!`,
-  hinglish: `👋 ${getGreeting()}! Main OneVoice hoon, aapka Stanley College ka assistant. Exam fees, timetable, results ya placements ke baare mein poochein!`,
+  english: `Hi, this is Sarathi your digital assistant feel free to ask a question about NGIT or KMIT`,
+  hindi: `नमस्ते! मैं Sarathi हूँ, आपका डिजिटल असिस्टेंट। NGIT या KMIT के बारे में कुछ भी पूछें।`,
+  urdu: `ہیلو! میں Sarathi ہوں، آپ کا ڈیجیٹل اسسٹنٹ۔ NGIT یا KMIT کے بارے میں کچھ بھی پوچھیں۔`,
+  urdulish: `Hi! Main Sarathi hoon, aapka digital assistant. NGIT ya KMIT ke baare mein kuch bhi poochein.`,
+  telugu: `నమస్కారం! నేను మీ డిజిటల్ అసిస్టెంట్ Sarathi ని. NGIT లేదా KMIT గురించి ఏమైనా అడగండి.`,
+  telugish: `Hi! Nenu Sarathi, mee digital assistant. NGIT leda KMIT gurinchi emaina adagandi.`,
+  tamil: `வணக்கம்! நான் உங்கள் டிஜிட்டல் உதவியாளர் Sarathi. NGIT அல்லது KMIT பற்றி எதுவும் கேளுங்கள்.`,
+  hinglish: `Hi! Main Sarathi hoon, aapka digital assistant. NGIT ya KMIT ke baare mein kuch bhi poochein.`,
 }
 
 const STORAGE_KEY = 'onevoice_chat_history'
@@ -298,11 +298,11 @@ export default function ChatWidget() {
           <div className="chat-header">
             <div className="chat-header-top">
               <div className="chat-header-info">
-                <img src="/logo.png" alt="SC" className="chat-avatar" />
+                <img src="/logo.jpg" alt="Sarathi" className="chat-avatar" />
                 <div>
-                  <div className="chat-title">OneVoice</div>
+                  <div className="chat-title">Sarathi</div>
                   <div className="chat-subtitle">
-                    Stanley College · AI Assistant
+                    NGIT & KMIT · AI Assistant
                     {backendStatus === 'waking' && (
                       <span className="waking-badge"> · ⏳ Starting up...</span>
                     )}

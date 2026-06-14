@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Header, UploadFile, File
-from config import ADMIN_SECRET_KEY
+from config import ADMIN_SECRET_KEY, GROQ_API_KEY
 from database.connection import get_db
 from database.models import pdf_doc
 from services.sync_service import sync_data_folder
@@ -7,6 +7,8 @@ import pymupdf
 import os
 import csv
 import io
+import base64
+from groq import Groq
 from fastapi.responses import StreamingResponse
 
 router = APIRouter()
@@ -67,52 +69,91 @@ async def list_pdfs(x_admin_key: str = Header(None)):
         f["_id"] = str(f["_id"])
     return {"files": files}
 
-# ✅ Upload PDF to MongoDB
+# ✅ Upload Document (PDF, TXT, Images) to MongoDB
 @router.post("/admin/pdfs/upload")
 async def upload_pdf(
     file: UploadFile = File(...),
     x_admin_key: str = Header(None)
 ):
     verify_admin(x_admin_key)
-    if not file.filename.endswith((".pdf", ".txt")):
-        raise HTTPException(status_code=400, detail="Only PDF and TXT files allowed")
+    filename_lower = file.filename.lower()
+    allowed_extensions = (".pdf", ".txt", ".png", ".jpg", ".jpeg")
+    
+    if not filename_lower.endswith(allowed_extensions):
+        raise HTTPException(status_code=400, detail="Only PDF, TXT, PNG, JPG, JPEG files allowed")
 
     content_bytes = await file.read()
     size_kb = round(len(content_bytes) / 1024, 1)
 
-    # Extract text content
-    if file.filename.endswith(".pdf"):
+    # Extract text content based on file type
+    if filename_lower.endswith(".pdf"):
         try:
             doc = pymupdf.open(stream=content_bytes, filetype="pdf")
             text = ""
             for page in doc:
                 text += page.get_text()
             doc.close()
-            # ✅ If scanned image PDF, store filename as content instead of blocking
             if not text.strip():
                 text = f"[Document: {file.filename}] This document is available in the knowledge base."
         except Exception as e:
             text = f"[Document: {file.filename}] This document is available in the knowledge base."
+    elif filename_lower.endswith((".png", ".jpg", ".jpeg")):
+        try:
+            # Use Groq Vision model for OCR
+            client = Groq(api_key=GROQ_API_KEY)
+            mime_type = "image/png" if filename_lower.endswith(".png") else "image/jpeg"
+            base64_image = base64.b64encode(content_bytes).decode("utf-8")
+            response = client.chat.completions.create(
+                model="llama-3.2-11b-vision-preview",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Extract all the text from this image exactly as it is. Output ONLY the extracted text with no other commentary. If there is no text, just output nothing."},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{mime_type};base64,{base64_image}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                temperature=0.1
+            )
+            text = response.choices[0].message.content.strip()
+            if not text:
+                text = f"[Image: {file.filename}] Image uploaded but no text could be extracted."
+        except Exception as e:
+            print(f"Vision OCR Error: {e}")
+            text = f"[Image: {file.filename}] Image uploaded but OCR failed."
     else:
         text = content_bytes.decode("utf-8", errors="ignore")
 
     db = get_db()
     await db.knowledge_base.delete_many({"filename": file.filename})
+    
+    # Determine basic file_type string for the DB record
+    file_type = "pdf"
+    if filename_lower.endswith(".txt"): file_type = "txt"
+    elif filename_lower.endswith((".png", ".jpg", ".jpeg")): file_type = "image"
+
     doc_data = pdf_doc(
         filename=file.filename,
         content=text,
-        file_type="pdf" if file.filename.endswith(".pdf") else "txt",
+        file_type=file_type,
         size_kb=size_kb
     )
     await db.knowledge_base.insert_one(doc_data)
 
     # Also store raw bytes so the download endpoint can serve the file from MongoDB
-    if file.filename.endswith(".pdf"):
+    if file_type in ("pdf", "image"):
         await db.pdf_files.delete_many({"filename": file.filename})
         await db.pdf_files.insert_one({
             "filename": file.filename,
             "data": content_bytes,
             "size_kb": size_kb,
+            "file_type": file_type,
             "uploaded_at": __import__('datetime').datetime.utcnow()
         })
 

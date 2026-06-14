@@ -210,8 +210,5 @@ async def get_context(query: str):
 
     # Add any direct filename matches to the top of the list
     direct_pdfs = await get_relevant_pdf_links(query)
-    for pdf in pdf_filenames:
-        if pdf not in direct_pdfs:
-            direct_pdfs.append(pdf)
 
     return context, intent, direct_pdfs
