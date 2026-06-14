@@ -298,7 +298,7 @@ export default function ChatWidget() {
           <div className="chat-header">
             <div className="chat-header-top">
               <div className="chat-header-info">
-                <img src="/logo.jpg" alt="Sarathi" className="chat-avatar" />
+                <img src="/logo.jpeg" alt="Sarathi" className="chat-avatar" />
                 <div>
                   <div className="chat-title">Sarathi</div>
                   <div className="chat-subtitle">
