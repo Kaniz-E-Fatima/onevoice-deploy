@@ -132,7 +132,15 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      return saved ? JSON.parse(saved) : [{ role: 'assistant', content: getWelcomeMessage('english') }]
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Always refresh the first welcome message with the current time-based greeting
+        if (parsed.length > 0 && parsed[0].role === 'assistant') {
+          parsed[0] = { ...parsed[0], content: getWelcomeMessage('english') }
+        }
+        return parsed
+      }
+      return [{ role: 'assistant', content: getWelcomeMessage('english') }]
     } catch { return [{ role: 'assistant', content: getWelcomeMessage('english') }] }
   })
   const [sessionId, setSessionId] = useState(null)
@@ -314,7 +322,10 @@ export default function ChatWidget() {
           <div className="chat-header">
             <div className="chat-header-top">
               <div className="chat-header-info">
-                <img src="/logo.jpeg" alt="OneVoice" className="chat-avatar" />
+                <div className="chat-avatar-wrapper">
+                  <img src="/logo.jpeg" alt="OneVoice" className="chat-avatar" />
+                  <span className="online-dot" />
+                </div>
                 <div>
                   <div className="chat-title">OneVoice</div>
                   <div className="chat-subtitle">
