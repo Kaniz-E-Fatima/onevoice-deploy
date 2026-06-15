@@ -253,21 +253,43 @@ function PDFManager({ adminKey, API_URL }) {
                     </button>
                     {/* Sync result display */}
                     {syncResult && (
-                        <div style={{
-                            marginTop: '10px',
-                            padding: '10px 14px',
-                            background: '#f0fdf4',
-                            border: '1px solid #86efac',
-                            borderRadius: '8px',
-                            fontSize: '0.85rem',
-                            color: '#166534',
-                            display: 'flex',
-                            gap: '16px',
-                            flexWrap: 'wrap'
-                        }}>
-                            <span>✅ <strong>{syncResult.synced}</strong> new files added</span>
-                            <span>⏭️ <strong>{syncResult.skipped}</strong> already up-to-date</span>
-                            {syncResult.failed > 0 && <span>⚠️ <strong>{syncResult.failed}</strong> failed</span>}
+                        <div style={{ marginTop: '10px' }}>
+                            <div style={{
+                                padding: '10px 14px',
+                                background: '#f0fdf4',
+                                border: '1px solid #86efac',
+                                borderRadius: '8px',
+                                fontSize: '0.85rem',
+                                color: '#166534',
+                                display: 'flex',
+                                gap: '16px',
+                                flexWrap: 'wrap'
+                            }}>
+                                <span>✅ <strong>{syncResult.synced}</strong> new files added</span>
+                                <span>⏭️ <strong>{syncResult.skipped}</strong> already up-to-date</span>
+                                {syncResult.failed > 0 && <span>⚠️ <strong>{syncResult.failed}</strong> failed</span>}
+                            </div>
+                            {syncResult.failed > 0 && (syncResult.failed_files || []).length > 0 && (
+                                <div style={{
+                                    marginTop: '8px',
+                                    padding: '10px 14px',
+                                    background: '#fff7f7',
+                                    border: '1px solid #fca5a5',
+                                    borderRadius: '8px',
+                                    fontSize: '0.83rem',
+                                    color: '#991b1b'
+                                }}>
+                                    <div style={{ fontWeight: 700, marginBottom: '6px' }}>⚠️ Files that failed to sync:</div>
+                                    <ul style={{ margin: 0, paddingLeft: '18px', lineHeight: 1.8 }}>
+                                        {syncResult.failed_files.map((f, i) => (
+                                            <li key={i} style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}>{f}</li>
+                                        ))}
+                                    </ul>
+                                    <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#b91c1c', fontStyle: 'italic' }}>
+                                        Tip: Only PDF, TXT, JPG, PNG are supported. HEIC images must be converted to JPEG first.
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     {message && !syncResult && (

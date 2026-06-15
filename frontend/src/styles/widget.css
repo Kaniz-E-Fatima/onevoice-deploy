@@ -29,9 +29,9 @@
 }
 
 .chat-fab {
-  height: 52px;
-  padding: 0 20px;
-  border-radius: 26px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   background: linear-gradient(135deg, var(--red) 0%, var(--red-mid) 100%);
   border: 2.5px solid rgba(255, 255, 255, 0.85);
   color: white;
@@ -42,7 +42,7 @@
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  min-width: 52px;
+  padding: 0;
   position: relative;
 }
 
@@ -50,7 +50,7 @@
   content: '';
   position: absolute;
   inset: -4px;
-  border-radius: 30px;
+  border-radius: 50%;
   border: 2px solid rgba(139, 0, 0, 0.45);
   animation: fabRing 2.4s ease-out infinite;
   pointer-events: none;
@@ -73,12 +73,13 @@
 }
 
 .fab-logo {
-  width: 30px;
-  height: 30px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.85);
   flex-shrink: 0;
+  pointer-events: none;
 }
 
 .fab-text-content {
@@ -107,11 +108,11 @@
 /* ── FAB Popup Bubble ───────────────────────────────────────────────────── */
 .fab-popup {
   position: absolute;
-  bottom: 64px;
-  right: 0;
+  bottom: 14px;
+  right: 72px;
   background: white;
   color: var(--black);
-  padding: 10px 14px 10px 16px;
+  padding: 11px 14px 11px 16px;
   border-radius: 14px 14px 0 14px;
   box-shadow: var(--shadow-md);
   font-size: 13px;

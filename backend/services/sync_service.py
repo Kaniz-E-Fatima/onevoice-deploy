@@ -102,6 +102,7 @@ async def sync_data_folder() -> dict:
     synced = 0
     skipped = 0
     failed = 0
+    failed_files = []
 
     print(f"\n🔄 Auto-sync: Found {len(files)} files in data/ folder")
 
@@ -173,6 +174,7 @@ async def sync_data_folder() -> dict:
         except Exception as e:
             print(f"  ❌ Failed: {filename} — {e}")
             failed += 1
+            failed_files.append(filename)
 
     total = synced + skipped + failed
     print(f"🔄 Auto-sync complete: {synced} synced, {skipped} already up-to-date, {failed} failed\n")
@@ -180,6 +182,7 @@ async def sync_data_folder() -> dict:
         "synced": synced,
         "skipped": skipped,
         "failed": failed,
+        "failed_files": failed_files,
         "total": total,
         "timestamp": datetime.utcnow().isoformat()
     }

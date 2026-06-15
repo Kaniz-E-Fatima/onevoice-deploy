@@ -151,13 +151,7 @@ export default function ChatWidget() {
   const [showHistory, setShowHistory] = useState(false)
   const wakeTimerRef = useRef(null)
   const [followUpSuggestions, setFollowUpSuggestions] = useState([])
-  const [showPopup, setShowPopup] = useState(false)
-  // ── Show popup bubble after 2s, auto-hide after 8s ───────────────────────
-  useEffect(() => {
-    const show = setTimeout(() => setShowPopup(true), 2000)
-    const hide = setTimeout(() => setShowPopup(false), 8000)
-    return () => { clearTimeout(show); clearTimeout(hide) }
-  }, [])
+  const [showPopup, setShowPopup] = useState(true)
 
   // ── Wake up backend when widget opens ────────────────────────────────────
   useEffect(() => {
@@ -440,15 +434,7 @@ export default function ChatWidget() {
       )}
 
       <button className="chat-fab" onClick={() => { setIsOpen(o => !o); setShowPopup(false); if (isOpen) stopSpeech() }}>
-        {isOpen ? '✕' : (
-          <div className="fab-content">
-            <img src="/logo.jpeg" alt="OneVoice" className="fab-logo" />
-            <div className="fab-text-content">
-              <span className="fab-ask">Ask</span>
-              <span className="fab-brand">OneVoice AI</span>
-            </div>
-          </div>
-        )}
+        {isOpen ? '✕' : <img src="/logo.jpeg" alt="OneVoice" className="fab-logo" />}
       </button>
     </div>
   )
