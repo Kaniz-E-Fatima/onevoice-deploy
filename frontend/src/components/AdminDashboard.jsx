@@ -44,8 +44,12 @@ const LANG_FLAGS = {
 const LANG_COLORS = { english: '#1d4ed8', hindi: '#b45309', urdu: '#047857', telugu: '#7c3aed', tamil: '#be123c', hinglish: '#0891b2', urdulish: '#db2777', telugish: '#d97706' }
 
 function StatCard({ icon, label, value, color }) {
+    const accent = color || '#8B0000'
     return (
-        <div className="adm-stat-card" style={{ borderLeftColor: color || '#8B0000' }}>
+        <div className="adm-stat-card" style={{
+            '--card-color': accent,
+            background: `linear-gradient(145deg, #ffffff 0%, ${accent}0d 100%)`
+        }}>
             <div className="adm-stat-icon">{icon}</div>
             <div className="adm-stat-number">{value ?? '—'}</div>
             <div className="adm-stat-label">{label}</div>
@@ -278,7 +282,7 @@ function PDFManager({ adminKey, API_URL }) {
 
             {/* Manual single-file upload */}
             <div className="adm-card" style={{ marginBottom: '1.5rem' }}>
-                <div className="adm-card-title">📤 Upload Single PDF or TXT</div>
+                <div className="adm-card-title">📤 Upload Document or Image</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                     <label style={{
                         background: '#8B0000', color: 'white',
@@ -288,12 +292,12 @@ function PDFManager({ adminKey, API_URL }) {
                         opacity: uploading ? 0.7 : 1
                     }}>
                         {uploading ? '⏳ Uploading...' : '📁 Choose File'}
-                        <input type="file" accept=".pdf,.txt"
+                        <input type="file" accept=".pdf,.txt,.jpg,.jpeg,.png"
                             onChange={handleUpload}
                             style={{ display: 'none' }}
                             disabled={uploading} />
                     </label>
-                    <span style={{ color: '#666', fontSize: '0.85rem' }}>Supported: PDF, TXT</span>
+                    <span style={{ color: '#666', fontSize: '0.85rem' }}>Supported: PDF, TXT, JPG, PNG</span>
                 </div>
                 {message && (
                     <div style={{
@@ -338,7 +342,7 @@ function PDFManager({ adminKey, API_URL }) {
                                 background: '#f9f9f9', border: '1px solid #eee'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <span style={{ fontSize: '1.5rem' }}>{file.file_type === 'pdf' ? '📄' : '📝'}</span>
+                                    <span style={{ fontSize: '1.5rem' }}>{file.file_type === 'pdf' ? '📄' : file.file_type === 'image' ? '🖼️' : '📝'}</span>
                                     <div>
                                         <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{file.filename}</div>
                                         <div style={{ color: '#888', fontSize: '0.8rem' }}>
@@ -353,7 +357,7 @@ function PDFManager({ adminKey, API_URL }) {
                                         cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600
                                     }}>
                                         🔄 Replace
-                                        <input type="file" accept=".pdf,.txt"
+                                        <input type="file" accept=".pdf,.txt,.jpg,.jpeg,.png"
                                             onChange={handleUpload}
                                             style={{ display: 'none' }} />
                                     </label>
@@ -521,7 +525,7 @@ export default function AdminDashboard() {
         return (
             <div className="adm-login-bg">
                 <div className="adm-login-card">
-                    <img src="/logo.png" alt="Stanley College" className="adm-login-logo" />
+                    <img src="/logo.jpeg" alt="Stanley College" className="adm-login-logo" />
                     <h2 className="adm-login-title">OneVoice Admin</h2>
                     <p className="adm-login-sub">Stanley College · Secure Dashboard</p>
                     {authError && (
@@ -551,7 +555,7 @@ export default function AdminDashboard() {
         <div className="adm-root">
             <header className="adm-header">
                 <div className="adm-header-left">
-                    <img src="/logo.png" alt="SC" className="adm-header-logo" />
+                    <img src="/logo.jpeg" alt="SC" className="adm-header-logo" />
                     <div>
                         <div className="adm-header-title">OneVoice Admin Dashboard</div>
                         <div className="adm-header-sub">Stanley College · Analytics & Insights</div>
