@@ -4,27 +4,34 @@ import './styles/home.css'
 import AdminDashboard from './components/AdminDashboard'
 
 function InstallBanner() {
-  const [prompt, setPrompt] = useState(null)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault()
-      setPrompt(e)
-      setVisible(true)
+    // Check if the event already fired before this component mounted
+    const tryShow = () => {
+      if (window.__pwaPrompt) setVisible(true)
     }
-    window.addEventListener('beforeinstallprompt', handler)
-    window.addEventListener('appinstalled', () => setVisible(false))
-    return () => window.removeEventListener('beforeinstallprompt', handler)
+    tryShow()
+    // Also listen in case it fires after mount
+    window.addEventListener('pwaready', tryShow)
+    window.addEventListener('appinstalled', () => {
+      setVisible(false)
+      window.__pwaPrompt = null
+    })
+    return () => window.removeEventListener('pwaready', tryShow)
   }, [])
 
-  if (!visible) return null
+  if (!visible || !window.__pwaPrompt) return null
 
   const handleInstall = async () => {
-    if (!prompt) return
-    prompt.prompt()
-    const { outcome } = await prompt.userChoice
-    if (outcome === 'accepted') setVisible(false)
+    const p = window.__pwaPrompt
+    if (!p) return
+    p.prompt()
+    const { outcome } = await p.userChoice
+    if (outcome === 'accepted') {
+      setVisible(false)
+      window.__pwaPrompt = null
+    }
   }
 
   return (
