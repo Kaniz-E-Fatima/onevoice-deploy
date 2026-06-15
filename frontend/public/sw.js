@@ -1,6 +1,6 @@
-const CACHE_NAME = 'onevoice-v5'
+const CACHE_NAME = 'onevoice-v6'
 // Only cache truly static assets — NEVER cache index.html
-const urlsToCache = ['/logo.jpeg', '/manifest.json']
+const urlsToCache = ['/logo.jpeg', '/icon-192.png', '/icon-512.png', '/manifest.json']
 
 self.addEventListener('install', event => {
     self.skipWaiting()

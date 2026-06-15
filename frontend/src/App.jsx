@@ -7,42 +7,63 @@ function InstallBanner() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    // Check if the event already fired before this component mounted
-    const tryShow = () => {
-      if (window.__pwaPrompt) setVisible(true)
-    }
-    tryShow()
-    // Also listen in case it fires after mount
-    window.addEventListener('pwaready', tryShow)
+    // Never show if already running as an installed PWA
+    const isInstalled =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true
+    if (isInstalled) return
+
+    // Show once per browser session — dismissed state resets when tab is closed
+    if (sessionStorage.getItem('pwa_banner_dismissed')) return
+
+    setVisible(true)
+
+    // Listen for native prompt becoming available (for the Install button)
+    const onReady = () => {} // just re-renders via window.__pwaPrompt check
+    window.addEventListener('pwaready', onReady)
     window.addEventListener('appinstalled', () => {
       setVisible(false)
       window.__pwaPrompt = null
     })
-    return () => window.removeEventListener('pwaready', tryShow)
+    return () => window.removeEventListener('pwaready', onReady)
   }, [])
 
-  if (!visible || !window.__pwaPrompt) return null
+  const handleDismiss = () => {
+    sessionStorage.setItem('pwa_banner_dismissed', '1')
+    setVisible(false)
+  }
 
   const handleInstall = async () => {
-    const p = window.__pwaPrompt
-    if (!p) return
-    p.prompt()
-    const { outcome } = await p.userChoice
-    if (outcome === 'accepted') {
-      setVisible(false)
-      window.__pwaPrompt = null
+    if (window.__pwaPrompt) {
+      // Browser supports native install prompt
+      window.__pwaPrompt.prompt()
+      const { outcome } = await window.__pwaPrompt.userChoice
+      if (outcome === 'accepted') {
+        setVisible(false)
+        window.__pwaPrompt = null
+      }
+    } else {
+      // Fallback: show manual instructions
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      if (isIOS) {
+        alert('To install on iPhone/iPad:\nTap the Share button (📤) at the bottom, then tap "Add to Home Screen"')
+      } else {
+        alert('To install:\n• Chrome / Edge: Look for the install icon (⊕) in the address bar and click it\n• Samsung Browser: Tap menu → Add page to → Home screen')
+      }
     }
   }
 
+  if (!visible) return null
+
   return (
     <div className="install-banner">
-      <img src="/logo.jpeg" alt="OneVoice" className="install-banner-logo" />
+      <img src="/icon-192.png" alt="OneVoice" className="install-banner-logo" />
       <div className="install-banner-text">
-        <span className="install-banner-title">Install OneVoice</span>
-        <span className="install-banner-sub">Add to your home screen for quick access</span>
+        <span className="install-banner-title">📲 Install OneVoice</span>
+        <span className="install-banner-sub">Add to home screen for quick access</span>
       </div>
       <button className="install-banner-btn" onClick={handleInstall}>Install</button>
-      <button className="install-banner-dismiss" onClick={() => setVisible(false)}>✕</button>
+      <button className="install-banner-dismiss" onClick={handleDismiss}>✕</button>
     </div>
   )
 }
