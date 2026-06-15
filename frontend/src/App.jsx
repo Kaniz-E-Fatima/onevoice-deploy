@@ -3,6 +3,43 @@ import ChatWidget from './components/ChatWidget'
 import './styles/home.css'
 import AdminDashboard from './components/AdminDashboard'
 
+function InstallBanner() {
+  const [prompt, setPrompt] = useState(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault()
+      setPrompt(e)
+      setVisible(true)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    window.addEventListener('appinstalled', () => setVisible(false))
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  if (!visible) return null
+
+  const handleInstall = async () => {
+    if (!prompt) return
+    prompt.prompt()
+    const { outcome } = await prompt.userChoice
+    if (outcome === 'accepted') setVisible(false)
+  }
+
+  return (
+    <div className="install-banner">
+      <img src="/logo.jpeg" alt="OneVoice" className="install-banner-logo" />
+      <div className="install-banner-text">
+        <span className="install-banner-title">Install OneVoice</span>
+        <span className="install-banner-sub">Add to your home screen for quick access</span>
+      </div>
+      <button className="install-banner-btn" onClick={handleInstall}>Install</button>
+      <button className="install-banner-dismiss" onClick={() => setVisible(false)}>✕</button>
+    </div>
+  )
+}
+
 export default function App() {
   // Admin route — protected by Google OAuth inside AdminDashboard
   if (window.location.pathname === '/admin') {
@@ -113,6 +150,7 @@ export default function App() {
 
       {/* Students use chatbot directly — no login needed */}
       <ChatWidget />
+      <InstallBanner />
     </div>
   )
 }

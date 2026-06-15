@@ -509,3 +509,99 @@ body {
     object-fit: cover;
     border: 2px solid rgba(255, 255, 255, 0.6);
 }
+
+/* ── PWA Install Banner ───────────────────────────────────────────────────── */
+.install-banner {
+    position: fixed;
+    bottom: 108px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    background: #fff;
+    color: #1a1a1a;
+    padding: 12px 16px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14), 0 0 0 1.5px rgba(139, 0, 0, 0.12);
+    border: 1.5px solid rgba(139, 0, 0, 0.1);
+    animation: installSlideUp 0.35s cubic-bezier(.22, 1, .36, 1);
+    max-width: 340px;
+    width: calc(100vw - 80px);
+    pointer-events: all;
+}
+
+@keyframes installSlideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.install-banner-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(139, 0, 0, 0.15);
+}
+
+.install-banner-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.install-banner-title {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #1a1a1a;
+    white-space: nowrap;
+}
+
+.install-banner-sub {
+    font-size: 11px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.install-banner-btn {
+    background: linear-gradient(135deg, #8B0000, #A50000);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.18s;
+    box-shadow: 0 3px 10px rgba(139, 0, 0, 0.3);
+    font-family: 'DM Sans', sans-serif;
+}
+
+.install-banner-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 16px rgba(139, 0, 0, 0.4);
+}
+
+.install-banner-dismiss {
+    background: none;
+    border: none;
+    color: #bbb;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0 2px;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: color 0.15s;
+}
+
+.install-banner-dismiss:hover {
+    color: #555;
+}
